@@ -1,0 +1,21 @@
+definitions:
+  model.Organization:
+    properties:
+      organization_id:
+        type: integer
+      organization_name:
+        type:string
+      
+  model.User:
+    properties:
+      nickname:
+        type: string
+      user_id:
+        type: integer
+      password:
+        type: string
+      headportrait:
+        type: string
+  model.colletions:
+    
+

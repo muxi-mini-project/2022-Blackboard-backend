@@ -1,0 +1,19 @@
+{
+    "schemes": [
+        "http"
+    ],
+    "swagger":"2.0",
+    "info": {
+        "description": "黑板API",
+        "title": "BlackBoard API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "Wishforpeace",
+            "email": "1903180340@qq.com"
+        },
+        "version": "1.0.0"
+    },
+    "host": "local",
+    
+    "paths": {}
+}
