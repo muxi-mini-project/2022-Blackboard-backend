@@ -12,11 +12,12 @@ DROP TABLE IF EXISTS `announcements`;
 
 --用户信息
 CREATE TABLE `users`(
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
     `student_id` BIGINT NOT NULL,
     `password` varchar(100) NOT NULL,
     `nickname` VARCHAR(100) NOT NULL,
     `headportrait` VARCHAR(100) NOT NULL,
-    PRIMARY KEY (`user_id`)
+    PRIMARY KEY (`id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
