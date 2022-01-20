@@ -17,56 +17,73 @@ CREATE TABLE `users`(
     `password` VARCHAR(100) NOT NULL,
     `nickname` VARCHAR(100) NOT NULL,
     `headportrait` VARCHAR(100) NOT NULL,
+--设置约束
     PRIMARY KEY (`id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-
+--用户收藏
 CREATE TABLE `collections`{
     `id` BIGINT NOT NULL AUTO_INCREMENT,
     `student_id` VARCHAR(100) NOT NULL,
     `announcement_id` VARCHAR(100) NOT NULL,
     `announcement` VARCHAR NULL,
-    PRIMARY KEY (`id`)
+--添加约束
+PRIMARY KEY (`id`)
 }ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--用户创建的组织
 CREATE TABLE `organizations_created`{
     `id` BIGINT NOT NULL AUTO_INCREMENT,
     `student_id` VARCHAR(100) NOT NULL,
     `org_id` VARCHAR(100) NOT NULL,
     `org_name` VARCHAR(100) NOT NULL,
-    PRIMARY KEY (`id`)
+--添加约束
+PRIMARY KEY (`id`)
 }ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--用户关注的组织
 CREATE TABLE `organizations_following`{
     `id` BIGINT NOT NULL AUTO_INCREMENT,
     `student_id` VARCHAR(100) NOT NULL,
     `org_id` VARCHAR(100) NOT NULL,
     `org_name` VARCHAR(100) NOT NULL,
-    PRIMARY KEY (`id`)
+--添加约束
+PRIMARY KEY (`id`)
 }ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--已存在的组织
 CREATE TABLE `organizations`{
     `org_id` BIGINT NOT NULL AUTO_INCREMENT,
     `org_logo` VARCHAR(100) NOT NULL,
     `org_name` VARCHAR(100) NOT NULL,
     `intro` VARCHAR(100) NOT NULL,
-    `org_groups` VARCHAR NOT NULL,
-    PRIMARY KEY (`org_id`),
-    FULLTEXT (`org_name`) WITH PARSER ngram
+--添加约束
+PRIMARY KEY (`org_id`),
+FULLTEXT (`org_name`) WITH PARSER ngram
 }ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--通告分类
 CREATE TABLE `groups`{
     `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `org_id` VARCHAR(100) NOT NULL,
     `org_name` VARCHAR(100) NOT NULL,
     'group_name' VARCHAR(100) NOT NULL,
-    PRIMARY KEY(`id`),
-    FULLTEXT (`group_name`) WITH PARSER ngram
+--添加约束
+PRIMARY KEY(`id`),
+FULLTEXT (`group_name`) WITH PARSER ngram
 }ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--通告
 CREATE TABLE `announcements`{
     `id` BIGINT NOT NULL AUTO_INCREMENT,
-    `user_id` VARCHAR(100) NOT NULL,
+    `org_id` VARCHAR(100) NOT NULL,
+    `org_name` VARCHAR(100) NOT NULL,
+    `group_id` VARCHAR(100) NOT NULL,
+    `group_name` VARCHAR(100) NOT NULL,
     `contents` VARCHAR(500) NOT NULL,
-    PRIMARY KEY (`id`),
-    FULLTEXT (`contents`) WITH PARSER ngram
+--添加约束
+PRIMARY KEY (`id`),
+FULLTEXT (`org_name`) WITH PARSER ngram,
+FULLTEXT (`group_name`) WITH PARSER ngram,
+FULLTEXT (`contents`) WITH PARSER ngram
 }ENGINE=InnoDB DEFAULT CHARSET=utf8;

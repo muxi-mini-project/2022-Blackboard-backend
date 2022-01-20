@@ -1,7 +1,7 @@
 package router
 
 import (
-	"blackboard/handler/organization"
+	// "blackboard/handler/organization"
 	"blackboard/handler/user"
 	"github.com/gin-gonic/gin"
 	"net/http"
