@@ -1,8 +1,14 @@
 package user
 
 import (
+	"blackboard/handler"
 	"blackboard/model"
+	"blackboard/service/user"
+	"encoding/base64"
+	"log"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,17 +25,53 @@ import (
 // @Failure 500 {object} error.Error "{"error_code":"30001", "message":"Fail."} 失败"
 // @Router /user/login [post]
 func Login(c *gin.Context) {
-	var user model.User
+	var u model.User
 	//
-	if err := c.BindJSON(&user); err != nil {
+	if err := c.BindJSON(&u); err != nil {
 		c.JSON(400, gin.H{"message": "Lack Param Or Param Not Satisfiable."})
 		return
 	}
-	if user.StudentID == "" {
+	if u.StudentID == "" {
 		c.JSON(400, gin.H{"message": "Lack Param Or Param Not Satisfiable."})
 		return
 	}
-	pwd := user.PassWord
+	pwd := u.PassWord
 	//首次登录，验证一站式
+	//判断是否首次登录
+	result := model.DB.Where("student_id = ?", u.StudentID).First(&u)
+	if result.Error != nil {
+		_, err := model.GetUserInfoFormOne(u.StudentID, pwd)
+		if err != nil {
+			c.JSON(401, "Password or account is wrong.")
+			return
+		}
+		//对用户信息初始化
+		u.NickName = "请修改昵称"
+		//对密码进行base64加密
+		u.PassWord = base64.StdEncoding.EncodeToString([]byte(u.PassWord))
+		model.DB.Create(&u)
+	} else {
+		//在数据库中解密比较
+		password, _ := base64.StdEncoding.DecodeString(u.PassWord)
 
+		if string(password) != pwd {
+			c.JSON(401, "Password or account is wrong.")
+			return
+		}
+	}
+
+	claims := &user.Jwt{StudentID: u.StudentID}
+
+	claims.ExpiresAt = time.Now().Add(200 * time.Hour).Unix()
+	claims.IssuedAt = time.Now().Unix()
+
+	var Secret = "vinegar"
+
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	signedToken, err := token.SignedString([]byte(Secret))
+	if err != nil {
+		log.Println(err)
+	}
+
+	handler.SendResponse(c, "将student_id作为token保留", signedToken)
 }
