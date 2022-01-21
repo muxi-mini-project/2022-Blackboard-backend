@@ -3,9 +3,11 @@ package router
 import (
 	// "blackboard/handler/organization"
 	// "blackboard/handler"
+	"blackboard/handler/organization"
 	"blackboard/handler/user"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Router(r *gin.Engine) {
@@ -18,31 +20,37 @@ func Router(r *gin.Engine) {
 		//登录
 		g1.POST("", user.Login)
 
+		//查看信息
+		g1.GET("Info", user.UserInfo)
+
 		//修改用户名
 		g1.PUT("/changename", user.ChangeUserName)
 
 		// //修改用户头像
 		// g1.PUT("", user.ChangeHeadportrait)
 
-		// //用户收藏
-		// g1.GET("/collection/:id", user.UserCollection)
+		//用户收藏的通告
+		g1.GET("/collection", user.CheckCollections)
 
-		// //用户发布
-		// g1.GET("/published/:id", user.UserPublish)
+		//用户发布的通告
+		g1.GET("/published", user.UserPublished)
 
 	}
 
-	// //organizations
-	// g2 := r.Group("/api/v1/organization")
-	// {
-	// 	//查看创建的组织
-	// 	g2.GET("/personal/:user_id/created", organization.CheckCreated)
-	// 	//查看关注的组织
-	// 	g2.GET("/personal/:user_id/following", organization.CheckFollowing)
-	// 	//查看特定组织信息
-	// 	g2.GET("/personal/:user_id/created/:organization_id", organization.CheckDetails)
-	// 	g2.GET("/personal/:user_id/following/:organization_id", organization.CheckDetails)
-	// }
+	//organizations
+	g2 := r.Group("/api/v1/organization")
+	{
+		//查看创建的组织
+		g2.GET("/personal/:user_id/created", organization.CheckCreated)
+		// //查看关注的组织
+		// g2.GET("/personal/:user_id/following", organization.CheckFollowing)
+		// //查看特定组织信息
+		// g2.GET("/personal/:user_id/created/:organization_id", organization.CheckDetails)
+		// g2.GET("/personal/:user_id/following/:organization_id", organization.CheckDetails)
+
+		//创建新的组织
+		g2.POST("/create", organization.CreateOne)
+	}
 	// //announcement
 	// g3 := r.Group("/api/v1/announcement")
 	// {
