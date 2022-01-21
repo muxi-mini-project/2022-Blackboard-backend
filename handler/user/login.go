@@ -47,6 +47,7 @@ func Login(c *gin.Context) {
 		}
 		//对用户信息初始化
 		u.NickName = "请修改昵称"
+		u.HeadPotrait = "请上传头像"
 		//对密码进行base64加密
 		u.PassWord = base64.StdEncoding.EncodeToString([]byte(u.PassWord))
 		model.DB.Create(&u)
