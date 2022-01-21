@@ -3,6 +3,8 @@ package main
 import (
 	"blackboard/model"
 	"blackboard/router"
+	"fmt"
+
 	// "fmt"
 
 	"github.com/gin-gonic/gin"
@@ -39,8 +41,10 @@ func main() {
 	dsn := "root:root&1234@tcp(127.0.0.1:3306)/blackboard?charset=utf8mb4&parseTime=True&loc=Local"
 	model.DB, err = gorm.Open("mysql", dsn)
 	if err != nil {
+		fmt.Println("数据库连接失败")
 		panic(err)
 	}
+	model.Migrate(model.DB)
 	r := gin.Default()
 	router.Router(r)
 	r.Run(":8080")

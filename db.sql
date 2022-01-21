@@ -29,17 +29,8 @@ CREATE TABLE `collections`(
     PRIMARY KEY (`id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
---用户创建的组织
-CREATE TABLE `organizations_created`(
-    `id` BIGINT NOT NULL AUTO_INCREMENT,
-    `student_id` VARCHAR(100) NOT NULL,
-    `org_id` VARCHAR(100) NOT NULL,
-    `org_name` VARCHAR(100) NOT NULL,
-PRIMARY KEY (`id`)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 --用户关注的组织
-CREATE TABLE `organizations_following`(
+CREATE TABLE `following_organizations`(
     `id` BIGINT NOT NULL AUTO_INCREMENT,
     `student_id` VARCHAR(100) NOT NULL,
     `org_id` VARCHAR(100) NOT NULL,
@@ -71,6 +62,7 @@ FULLTEXT (`group_name`) WITH PARSER ngram
 --通告
 CREATE TABLE `announcements`(
     `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `publisher_id` BIGINT NOT NULL,
     `org_id` VARCHAR(100) NOT NULL,
     `org_name` VARCHAR(100) NOT NULL,
     `group_id` VARCHAR(100) NOT NULL,
