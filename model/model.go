@@ -52,3 +52,21 @@ func GetDetails(ID string) (Organization, error) {
 	var org Organization
 	return org, DB.Where("organization_id = ?", ID).First(&org).Error
 }
+
+//查看全部通知
+func GetAnnouncements(interface{}) ([]Announcement, error) {
+	var announce []Announcement
+
+	return announce, DB.Find(&announce).Error
+}
+
+//验证身份是否为创建人
+func JudgeFounder(PublisherId string, OrganizationId string) bool {
+	var org Organization
+	DB.First(&org)
+	if org.FounderID != PublisherId {
+		return false
+	} else {
+		return true
+	}
+}

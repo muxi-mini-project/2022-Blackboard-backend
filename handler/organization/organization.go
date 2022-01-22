@@ -139,7 +139,6 @@ func CheckDetails(c *gin.Context) {
 // @Failure 203 {object} error.Error "{"error_code":"20001","message":"Fail."}"
 // @Failure 401 {object} error.Error "{"error_code":"10001","message":"Token Invalid."} 身份验证失败 重新登录"
 // @Failure 400 {object} error.Error "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
-// @Failure 500 {object} error.Error "{"error_code":"30001", "message":"Fail."} 失败"
 // @Router /organization/create
 func CreateOne(c *gin.Context) {
 	token := c.Request.Header.Get("token")

@@ -3,6 +3,7 @@ package router
 import (
 	// "blackboard/handler/organization"
 	// "blackboard/handler"
+	"blackboard/handler/announcement"
 	"blackboard/handler/organization"
 	"blackboard/handler/user"
 	"net/http"
@@ -63,8 +64,10 @@ func Router(r *gin.Engine) {
 	{
 		//查看最新通知
 		g3.GET("", announcement.CheckAllPubilshed)
+		//新建分组
+		g3.POST("/create_group", announcement.CreateGroup)
 		//发布通知
-		g3.POST("/", announcement.PublishNews)
+		g3.POST("/publish", announcement.PublishNews)
 		//删除通知
 		g3.DELETE("/:user_id/delete/:organization_id", announcement.DeletePublished)
 		//收藏通知
