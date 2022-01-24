@@ -33,7 +33,7 @@ func UserInfo(c *gin.Context) {
 	u, err := model.GetUserInfo(id)
 	if err != nil {
 		fmt.Println(err)
-		c.JSON(203, gin.H{"message": "Token Invalid"})
+		c.JSON(203, gin.H{"message": "Fail."})
 		return
 	}
 	handler.SendResponse(c, "获取成功", u)
@@ -98,9 +98,9 @@ func CheckCollections(c *gin.Context) {
 	}
 	collect, err := model.GetCollection(id)
 	if err != nil {
-		fmt.Println(err)
-		c.JSON(203, gin.H{"message": "Token Invalid"})
-		return
+		c.JSON(203, gin.H{
+			"message": "Fail.",
+		})
 	}
 	handler.SendResponse(c, "获取成功", collect)
 }
