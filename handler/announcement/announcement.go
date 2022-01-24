@@ -58,8 +58,8 @@ func PublishNews(c *gin.Context) {
 		})
 		return
 	}
-	verfi := model.JudgeFounder(id, announcement.OrganizationID)
-	if verfi {
+	verify := model.JudgeFounder(id, announcement.OrganizationID)
+	if !verify {
 		result := model.DB.Create(&announcement)
 		if result.Error != nil {
 			c.JSON(400, gin.H{
@@ -75,23 +75,33 @@ func PublishNews(c *gin.Context) {
 	handler.SendResponse(c, "创建成功", announcement)
 }
 
+//@Summary 创建分组
+//@Tags announcement
+//@Description 仅组织创建者可新建通告分组
+// @Accept application/json
+// @Produce application/json
+// @Param token header string true "token"
+// @Success 200 {object} []model.Group "{"msg":"创建成功"}"
+// @Failure 203 {object} error.Error "{"error_code":"20001","message":"Fail."}"
+// @Failure 412 {object}  "{"msg":"身份认证失败"}"
+// @Router /announcement/create_group
 func CreateGroup(c *gin.Context) {
 	token := c.Request.Header.Get("token")
 	id, err := user.VerifyToken(token)
 	if err != nil {
 		c.JSON(404, gin.H{"message": "Token Invalid"})
 	}
-	var announcement model.Announcement
-	err = c.BindJSON(&announcement)
+	var group model.Group
+	err = c.BindJSON(&group)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message": "Lack Param Or Param Not Satisfiable.",
 		})
 		return
 	}
-	verfi := model.JudgeFounder(id, announcement.OrganizationID)
-	if verfi {
-		result := model.DB.Create(&announcement)
+	verfify := model.JudgeFounder(id, group.OrganizationID)
+	if verfify {
+		result := model.DB.Create(&group)
 		if result.Error != nil {
 			c.JSON(400, gin.H{
 				"message": "Fail.",
@@ -103,5 +113,96 @@ func CreateGroup(c *gin.Context) {
 		})
 		return
 	}
-	handler.SendResponse(c, "创建成功", announcement)
+	handler.SendResponse(c, "创建成功", group)
+}
+
+//@Summary 删除通知
+//@Tags announcement
+//@Description 仅组织创建者可删除通告
+// @Accept application/json
+// @Produce application/json
+// @Param token header string true "token"
+// @Success 200 {object} []model.Group "{"msg":"删除成功"}"
+// @Failure 203 {object} error.Error "{"error_code":"20001","message":"Fail."}"
+// @Failure 412 {object}  "{"msg":"身份认证失败"}"
+// @Router /announcement/delete
+func DeletePublished(c *gin.Context) {
+	token := c.Request.Header.Get("token")
+	id, err := user.VerifyToken(token)
+	if err != nil {
+		c.JSON(404, gin.H{"message": "Token Invalid"})
+	}
+	AnnoucementID := c.Param("announcement_id")
+	if err != nil {
+		c.JSON(400, gin.H{
+			"message": "Lack Param Or Param Not Satisfiable.",
+		})
+		return
+	}
+	verfify := model.JudgePublisher(id, AnnoucementID)
+	if verfify {
+		err = model.DeleteAnnoucement(AnnoucementID)
+		if err != nil {
+			c.JSON(400, gin.H{
+				"message": "Fail.",
+			})
+		}
+	} else {
+		c.JSON(412, gin.H{
+			"message": "身份认证错误",
+		})
+		return
+	}
+	handler.SendResponse(c, "删除成功", nil)
+}
+
+//@Summary 收藏通知
+//@Tags announcement
+//@Description 用户将通知加入自己的收藏
+// @Accept application/json
+// @Produce application/json
+// @Param token header string true "token"
+// @Success 200 {object} []model.Collection "{"msg":"收藏成功"}"
+// @Failure 203 {object} error.Error "{"error_code":"20001","message":"Fail."}"
+// @Failure 412 {object}  "{"msg":"身份认证失败"}"
+// @Router /announcement/collect
+func Collect(c *gin.Context) {
+	token := c.Request.Header.Get("token")
+	_, err := user.VerifyToken(token)
+	if err != nil {
+		c.JSON(404, gin.H{"message": "Token Invalid"})
+	}
+	var collect model.Collection
+	if err = c.BindJSON(&collect); err != nil {
+		c.JSON(400, gin.H{"message": "Lack Param Or Param Not Satisfiable."})
+		return
+	}
+	result := model.DB.Create(&collect)
+	if result.Error != nil {
+		c.JSON(400, gin.H{"message": "Fail"})
+		return
+	}
+	handler.SendResponse(c, "关注成功", nil)
+}
+
+//@Summary 取消收藏
+//@Tags announcement
+//@Descrip 用户删除之前收藏的通知
+// @Accept application/json
+// @Produce application/json
+// @Param token header string true "token"
+// @Success 200 {object} []model.Collection "{"msg":"取消收藏"}"
+// @Failure 203 {object} error.Error "{"error_code":"20001","message":"Fail."}"
+// @Failure 412 {object}  "{"msg":"身份认证失败"}"
+// @Router /announcement/collect/cancel
+func CancelCollect(c *gin.Context) {
+	token := c.Request.Header.Get("token")
+	_, err := user.VerifyToken(token)
+	if err != nil {
+		c.JSON(404, gin.H{"message": "Token Invalid"})
+	}
+	CollectID := c.Query("collect_id")
+	err = model.CancelCollect(CollectID)
+	handler.SendResponse(c, "关注成功", nil)
+
 }

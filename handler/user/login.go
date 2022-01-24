@@ -6,6 +6,7 @@ import (
 	"blackboard/service/user"
 	"encoding/base64"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -28,11 +29,11 @@ func Login(c *gin.Context) {
 	var u model.User
 	//
 	if err := c.BindJSON(&u); err != nil {
-		c.JSON(400, gin.H{"message": "Lack Param Or Param Not Satisfiable."})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Lack Param Or Param Not Satisfiable."})
 		return
 	}
 	if u.StudentID == "" {
-		c.JSON(400, gin.H{"message": "Lack Param Or Param Not Satisfiable."})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Lack Param Or Param Not Satisfiable."})
 		return
 	}
 	pwd := u.PassWord
@@ -42,12 +43,11 @@ func Login(c *gin.Context) {
 	if result.Error != nil {
 		_, err := model.GetUserInfoFormOne(u.StudentID, pwd)
 		if err != nil {
-			c.JSON(401, "Password or account is wrong.")
+			c.JSON(http.StatusUnauthorized, "Password or account is wrong.")
 			return
 		}
 		//对用户信息初始化
 		u.NickName = "请修改昵称"
-		u.HeadPotrait = "请上传头像"
 		//对密码进行base64加密
 		u.PassWord = base64.StdEncoding.EncodeToString([]byte(u.PassWord))
 		model.DB.Create(&u)
@@ -56,7 +56,7 @@ func Login(c *gin.Context) {
 		password, _ := base64.StdEncoding.DecodeString(u.PassWord)
 
 		if string(password) != pwd {
-			c.JSON(401, "Password or account is wrong.")
+			c.JSON(http.StatusUnauthorized, "Password or account is wrong.")
 			return
 		}
 	}
