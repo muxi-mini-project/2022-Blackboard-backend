@@ -1,21 +1,663 @@
+basePath: /api/v1
 definitions:
+  Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      message: {}
+    type: object
+  errno.Errno:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  model.Announcement:
+    properties:
+      contents:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      group_id:
+        type: string
+      group_name:
+        type: string
+      id:
+        type: integer
+      organization_id:
+        type: string
+      organization_name:
+        type: string
+      publisher_id:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  model.Collection:
+    properties:
+      announcement:
+        type: string
+      announcement_id:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      student_id:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  model.FollowingOrganization:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      organization_id:
+        type: string
+      organization_name:
+        type: string
+      student_id:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  model.Group:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      group_name:
+        type: string
+      id:
+        type: integer
+      organization_id:
+        type: string
+      organization_name:
+        type: string
+      updatedAt:
+        type: string
+    type: object
   model.Organization:
     properties:
-      organization_id:
+      avatar:
+        $ref: '#/definitions/sql.NullString'
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      founder_id:
+        type: string
+      id:
         type: integer
+      intro:
+        type: string
       organization_name:
-        type:string
-      
+        type: string
+      updatedAt:
+        type: string
+    type: object
   model.User:
     properties:
+      avatar:
+        $ref: '#/definitions/sql.NullString'
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
       nickname:
         type: string
-      user_id:
-        type: integer
       password:
         type: string
-      headportrait:
+      student_id:
         type: string
-  model.colletions:
-    
-
+      updatedAt:
+        type: string
+    type: object
+  sql.NullString:
+    properties:
+      string:
+        type: string
+      valid:
+        description: Valid is true if String is not NULL
+        type: boolean
+    type: object
+host: 127.0.0.1
+info:
+  contact:
+    email: 1903180340@qq.com
+    name: Wishiforpeace
+  description: 黑板API
+  termsOfService: http://swagger.io/terrms/
+  title: BlackBoard API
+  version: 1.0.0
+paths:
+  /api/v1/announcement:
+    get:
+      consumes:
+      - application/json
+      description: 用户查看已经发布过的通知
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"查看"}'
+          schema:
+            items:
+              $ref: '#/definitions/model.Announcement'
+            type: array
+        "203":
+          description: '{"error_code":"20001","message":"Fail."}'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "401":
+          description: '{"error_code":"10001","message":"Token Invalid."} 身份验证失败 重新登录'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 查看通知
+      tags:
+      - announcement
+  /api/v1/announcement/collect:
+    post:
+      consumes:
+      - application/json
+      description: 用户将通知加入自己的收藏
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"收藏成功"}'
+          schema:
+            items:
+              $ref: '#/definitions/model.Collection'
+            type: array
+        "203":
+          description: '{"error_code":"20001","message":"Fail."}'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "412":
+          description: '{"msg":"身份认证失败"}'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 收藏通知
+      tags:
+      - announcement
+  /api/v1/announcement/collect/cancel:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: collect_id
+        in: query
+        name: collect_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 取消收藏
+      tags:
+      - announcement
+  /api/v1/announcement/create_group:
+    post:
+      consumes:
+      - application/json
+      description: 仅组织创建者可新建通告分组
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 新建分组
+        in: body
+        name: group
+        schema:
+          $ref: '#/definitions/model.Group'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"创建成功"}'
+          schema:
+            items:
+              $ref: '#/definitions/model.Group'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "412":
+          description: '{"msg":"身份认证失败"}'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 创建分组
+      tags:
+      - announcement
+  /api/v1/announcement/delete:
+    delete:
+      consumes:
+      - application/json
+      description: 仅组织创建者可删除通告
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 通知ID
+        in: path
+        name: announcement_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"删除成功"}'
+        "203":
+          description: '{"error_code":"20001","message":"Fail."}'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "412":
+          description: '{"msg":"身份认证失败"}'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 删除通知
+      tags:
+      - announcement
+  /api/v1/announcement/publish:
+    post:
+      consumes:
+      - application/json
+      description: 仅组织创建者可发布新的通知
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 组织创建者发布的新通知
+        in: body
+        name: announcement
+        required: true
+        schema:
+          $ref: '#/definitions/model.Announcement'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"创建成功"}'
+          schema:
+            items:
+              $ref: '#/definitions/model.Announcement'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "412":
+          description: '{"msg":"身份认证失败"}'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 发布通知
+      tags:
+      - announcement
+  /api/v1/login:
+    post:
+      description: 一站式登录
+      parameters:
+      - description: 登录用户信息
+        in: body
+        name: object
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      produces:
+      - applic/json
+      responses:
+        "200":
+          description: '{"msg":"将student_id作为token保留"}'
+          schema:
+            $ref: '#/definitions/Response'
+        "400":
+          description: '{"error_code":"20001", "message":"Fail."} or {"error_code":"00002",
+            "message":"Lack Param Or Param Not Satisfiable."}'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "401":
+          description: '{"error_code":"10001", "message":"Password or account wrong."}
+            身份认证失败 重新登录'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "500":
+          description: '{"error_code":"30001", "message":"Fail."} 失败'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 登录
+      tags:
+      - user
+  /api/v1/organization/create:
+    post:
+      consumes:
+      - application/json
+      description: 用户新建组织以便发布信息
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"新建成功"}'
+          schema:
+            items:
+              $ref: '#/definitions/model.Organization'
+            type: array
+        "400":
+          description: '{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack
+            Param or Param Not Satisfiable."}'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 新建组织
+      tags:
+      - organization
+  /api/v1/organization/personal/created:
+    get:
+      consumes:
+      - application/json
+      description: 查看用户创建的组织
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"查询成功"}'
+          schema:
+            items:
+              $ref: '#/definitions/model.Organization'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 查看创建
+      tags:
+      - organization
+  /api/v1/organization/personal/follow:
+    post:
+      consumes:
+      - application/json
+      description: 用户关注一个已经被创建的组织
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"新建成功"}'
+          schema:
+            items:
+              $ref: '#/definitions/model.FollowingOrganization'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 关注组织
+      tags:
+      - organization
+  /api/v1/organization/personal/following:
+    get:
+      consumes:
+      - application/json
+      description: 查看用户关注的组织
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"获取成功"}'
+          schema:
+            items:
+              $ref: '#/definitions/model.FollowingOrganization'
+            type: array
+        "400":
+          description: '{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack
+            Param or Param Not Satisfiable."}'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "500":
+          description: '{"error_code":"30001", "message":"Fail."} 失败'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 查看关注
+      tags:
+      - organization
+  /api/v1/user/Info:
+    get:
+      consumes:
+      - application/json
+      description: 获取用户信息
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"获取成功"}'
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: '{"error_code":"20001", "message":"Fail."} or {"error_code":"00002",
+            "message":"Lack Param Or Param Not Satisfiable."}'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "500":
+          description: '{"error_code":"30001", "message":"Fail."} 失败'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 用户信息
+      tags:
+      - user
+  /api/v1/user/changename:
+    put:
+      consumes:
+      - application/json
+      description: 接收新的User结构体来修改用户名
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 需要修改的用户信息
+        in: body
+        name: User
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"修改成功"}'
+          schema:
+            $ref: '#/definitions/Response'
+        "400":
+          description: '{"error_code":"20001", "message":"Fail."} or {"error_code":"00002",
+            "message":"Lack Param Or Param Not Satisfiable."}'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "500":
+          description: '{"error_code":"30001", "message":"Fail."} 失败'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 修改用户名
+      tags:
+      - user
+  /api/v1/user/colletion:
+    get:
+      consumes:
+      - application/json
+      description: 查看用户收藏的通告
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"获取成功"}'
+          schema:
+            items:
+              $ref: '#/definitions/model.Collection'
+            type: array
+        "400":
+          description: '{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack
+            Param or Param Not Satisfiable."}'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 查看用户收藏
+      tags:
+      - user
+  /api/v1/user/profile:
+    post:
+      consumes:
+      - application/json
+      description: 修改用户头像
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      - description: 文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 数据无法更新
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "404":
+          description: 该用户不存在
+      summary: 修改头像
+      tags:
+      - user
+  /api/v1/user/publisher:
+    get:
+      consumes:
+      - application/json
+      description: 查看用户发布过的通告
+      parameters:
+      - description: token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"获取成功"}'
+          schema:
+            items:
+              $ref: '#/definitions/model.Announcement'
+            type: array
+        "400":
+          description: '{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack
+            Param or Param Not Satisfiable."}'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 通告
+      tags:
+      - user
+schemes:
+- http
+swagger: "2.0"
