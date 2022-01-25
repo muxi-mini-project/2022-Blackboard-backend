@@ -1,23 +1,17 @@
 package handler
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
-type Data struct {
-	Data interface{} `json:"data"`
-}
-
-//Response 请求响应
+// Response 请求响应
 type Response struct {
 	Code    int         `json:"code"`
-	Message interface{} `json:"msg"`
+	Message interface{} `json:"message"`
 	Data    interface{} `json:"data"`
-} //@name response
+} //@name Response
 
-//
 func SendResponse(c *gin.Context, message interface{}, data interface{}) {
 	c.JSON(http.StatusOK, Response{
 		Code:    http.StatusOK,
@@ -29,6 +23,14 @@ func SendResponse(c *gin.Context, message interface{}, data interface{}) {
 func SendBadRequest(c *gin.Context, message interface{}, data interface{}) {
 	c.JSON(http.StatusBadRequest, Response{
 		Code:    http.StatusBadRequest,
+		Message: message,
+		Data:    data,
+	})
+}
+
+func SendError(c *gin.Context, message interface{}, data interface{}) {
+	c.JSON(http.StatusInternalServerError, Response{
+		Code:    http.StatusInternalServerError,
 		Message: message,
 		Data:    data,
 	})

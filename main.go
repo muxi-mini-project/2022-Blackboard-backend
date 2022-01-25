@@ -15,11 +15,11 @@ import (
 
 // @title BlackBoard API
 // @version 1.0.0
-// @description 黑££板API
+// @description 黑板API
 // @termsOfService http://swagger.io/terrms/
 // @contact.name Wishiforpeace
 // @contact.email 1903180340@qq.com
-// @host localhost
+// @host 127.0.0.1
 // @BasePath /api/v1
 // @Schemes http
 

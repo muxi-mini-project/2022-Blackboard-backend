@@ -3,6 +3,7 @@ package organization
 import (
 	"blackboard/handler"
 	"blackboard/model"
+	"blackboard/pkg/errno"
 	"database/sql"
 	"fmt"
 	"log"
@@ -22,12 +23,9 @@ import (
 // @Accept application/json
 // @Produce application/json
 // @Param token header string true "token"
-// @Success 200 {object} []model.Organization "{"msg":"查询成功"}"
-// @Failure 203 {object} error.Error "{"error_code":"20001","message":"Fail."}"
-// @Failure 401 {object} error.Error "{"error_code":"10001","message":"Token Invalid."} 身份验证失败 重新登录"
-// @Failure 400 {object} error.Error "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
-// @Failure 500 {object} error.Error "{"error_code":"30001", "message":"Fail."} 失败"
-// @Router /organization/personal/created
+// @Success 200 {object} []model.Organization "{"msg":"获取成功"}"
+// @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
+// @Router /api/v1/organization/personal/created [get]
 func CheckAll(c *gin.Context) {
 	var (
 		org []model.Organization
@@ -35,14 +33,12 @@ func CheckAll(c *gin.Context) {
 	)
 	org, err = model.GetAllOrganizations("查看所有组织")
 	if err != nil {
-		c.JSON(http.StatusNonAuthoritativeInfo, gin.H{"message": "查询失败."})
+		handler.SendError(c, errno.ErrDatabase, nil)
 		return
 	}
 	handler.SendResponse(c, "获取成功", org)
 }
 
-// @Summary 查看组织
-// @Tags 查看
 // @Summary  查看创建
 // @Tags organization
 // @Description 查看用户创建的组织
@@ -50,15 +46,13 @@ func CheckAll(c *gin.Context) {
 // @Produce application/json
 // @Param token header string true "token"
 // @Success 200 {object} []model.Organization "{"msg":"查询成功"}"
-// @Failure 203 {object} error.Error "{"error_code":"20001","message":"Fail."}"
-// @Failure 401 {object} error.Error "{"error_code":"10001","message":"Token Invalid."} 身份验证失败 重新登录"
-// @Failure 400 {object} error.Error "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
-// @Failure 500 {object} error.Error "{"error_code":"30001", "message":"Fail."} 失败"
-// @Router /organization/personal/created
+// @Failure 400 {object} errno.Errno
+// @Failure 500 {object} errno.Errno
+// @Router /api/v1/organization/personal/created [get]
 func CheckCreated(c *gin.Context) {
 	id, ok := c.Get("student_id")
 	if !ok {
-		handler.SendBadRequest(c, "未输入身份", "null")
+		handler.SendBadRequest(c, "未输入ID", nil)
 	}
 	ID := id.(string)
 	created, err := model.GetCreated(ID)
@@ -75,12 +69,10 @@ func CheckCreated(c *gin.Context) {
 // @Accept application/json
 // @Produce application/json
 // @Param token header string true "token"
-// @Success 200 {object} []model.FollowingOrganization "{"msg":"查询成功"}"
-// @Failure 203 {object} error.Error "{"error_code":"20001","message":"Fail."}"
-// @Failure 401 {object} error.Error "{"error_code":"10001","message":"Token Invalid."} 身份验证失败 重新登录"
-// @Failure 400 {object} error.Error "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
-// @Failure 500 {object} error.Error "{"error_code":"30001", "message":"Fail."} 失败"
-// @Router /organization/personal/following
+// @Success 200 {object} []model.FollowingOrganization "{"msg":"获取成功"}"
+// @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
+// @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
+// @Router /api/v1/organization/personal/following [get]
 func CheckFollowing(c *gin.Context) {
 	id, ok := c.Get("student_id")
 	if !ok {
@@ -103,11 +95,9 @@ func CheckFollowing(c *gin.Context) {
 // @Produce application/json
 // @Param token header string true "token"
 // @Success 200 {object} []model.Organization "{"msg":"查询成功"}"
-// @Failure 203 {object} error.Error "{"error_code":"20001","message":"Fail."}"
-// @Failure 401 {object} error.Error "{"error_code":"10001","message":"Token Invalid."} 身份验证失败 重新登录"
-// @Failure 400 {object} error.Error "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
-// @Failure 500 {object} error.Error "{"error_code":"30001", "message":"Fail."} 失败"
-// @Router /organization/details
+// @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
+// @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
+// @Router /api/v1/organization/details [get]
 type Detail struct {
 	Name string `json:"name"`
 	ID   string `json:"id"`
@@ -142,10 +132,8 @@ func CheckDetails(c *gin.Context) {
 // @Produce application/json
 // @Param token header string true "token"
 // @Success 200 {object} []model.Organization "{"msg":"新建成功"}"
-// @Failure 203 {object} error.Error "{"error_code":"20001","message":"Fail."}"
-// @Failure 401 {object} error.Error "{"error_code":"10001","message":"Token Invalid."} 身份验证失败 重新登录"
-// @Failure 400 {object} error.Error "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
-// @Router /organization/create
+// @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
+// @Router /api/v1/organization/create [post]
 func CreateOne(c *gin.Context) {
 	var org model.Organization
 	if err := c.BindJSON(&org); err != nil {
@@ -203,10 +191,9 @@ func CreateOne(c *gin.Context) {
 // @Produce application/json
 // @Param token header string true "token"
 // @Success 200 {object} []model.FollowingOrganization "{"msg":"新建成功"}"
-// @Failure 203 {object} error.Error "{"error_code":"20001","message":"Fail."}"
-// @Failure 401 {object} error.Error "{"error_code":"10001","message":"Token Invalid."} 身份验证失败 重新登录"
-// @Failure 400 {object} error.Error "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
-// @Router /organization/personal/follow
+// @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
+// @Failure 400 {object} errno.Errno
+// @Router /api/v1/organization/personal/follow [post]
 func FollowOneOrganization(c *gin.Context) {
 	var following model.FollowingOrganization
 	if err := c.BindJSON(&following); err != nil {

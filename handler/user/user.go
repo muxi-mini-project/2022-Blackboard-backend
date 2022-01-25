@@ -16,18 +16,16 @@ import (
 	"time"
 )
 
-//@Summary  用户信息
+// @Summary  用户信息
 // @Tags user
 // @Description 获取用户信息
 // @Accept application/json
 // @Produce application/json
 // @Param token header string true "token"
 // @Success 200 {object} model.User "{"msg":"获取成功"}"
-// @Failure 203 {object} error.Error "{"error_code":"20001", "message":"Fail."}"
-// @Failure 401 {object} error.Error "{"error_code":"10001", "message":"Token Invalid."} 身份认证失败 重新登录"
-// @Failure 400 {object} error.Error "{"error_code":"20001", "message":"Fail."} or {"error_code":"00002", "message":"Lack Param Or Param Not Satisfiable."}"
-// @Failure 500 {object} error.Error "{"error_code":"30001", "message":"Fail."} 失败"
-// @Router /user/Info [GET]
+// @Failure 400 {object} errno.Errno "{"error_code":"20001", "message":"Fail."} or {"error_code":"00002", "message":"Lack Param Or Param Not Satisfiable."}"
+// @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
+// @Router /api/v1/user/Info [get]
 func UserInfo(c *gin.Context) {
 	id, ok := c.Get("student_id")
 	ID := id.(string)
@@ -51,10 +49,9 @@ func UserInfo(c *gin.Context) {
 // @Param token header string true "token"
 // @Param User body model.User true "需要修改的用户信息"
 // @Success 200 {object} handler.Response "{"msg":"修改成功"}"
-// @Failure 401 {object} error.Error "{"error_code":"10001", "message":"Token Invalid."} 身份认证失败 重新登录"
-// @Failure 400 {object} error.Error "{"error_code":"20001", "message":"Fail."} or {"error_code":"00002", "message":"Lack Param Or Param Not Satisfiable."}"
-// @Failure 500 {object} error.Error "{"error_code":"30001", "message":"Fail."} 失败"
-// @Router /user/changename [put]
+// @Failure 400 {object} errno.Errno "{"error_code":"20001", "message":"Fail."} or {"error_code":"00002", "message":"Lack Param Or Param Not Satisfiable."}"
+// @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
+// @Router /api/v1/user/changename [put]
 func ChangeUserName(c *gin.Context) {
 	user := model.User{}
 	if err := c.BindJSON(&user); err != nil {
@@ -69,17 +66,15 @@ func ChangeUserName(c *gin.Context) {
 	c.Redirect(http.StatusMovedPermanently, "/user/Info"+user.StudentID)
 }
 
-//@Summary  查看用户收藏
-//@Tags user
-//@Description 查看用户收藏的通告
-//@Accept application/json
-//@Produce application/json
-//@Param token header string true "token"
-//@Success 200 {object} []model.Collection "{"msg":"获取成功"}"
-//@Failure 203 {object} error.Error "{"error_code":"20001","message":"Fail."}"
-//@Failure 401 {object} error.Error "{"error_code":"10001","message":"Token Invalid."} 身份验证失败 重新登录"
-//@Failure 400 {object} error.Error "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
-//@Router /user/colletion [GET]
+// @Summary  查看用户收藏
+// @Tags user
+// @Description 查看用户收藏的通告
+// @Accept application/json
+// @Produce application/json
+// @Param token header string true "token"
+// @Success 200 {object} []model.Collection "{"msg":"获取成功"}"
+// @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
+// @Router /api/v1/user/colletion [get]
 func CheckCollections(c *gin.Context) {
 	id, ok := c.Get("student_id")
 	if !ok {
@@ -95,17 +90,15 @@ func CheckCollections(c *gin.Context) {
 	handler.SendResponse(c, "获取成功", collect)
 }
 
-//@Summary  通告
-//@Tags user
-//@Description 查看用户发布过的通告
-//@Accept application/json
-//@Produce application/json
-//@Param token header string true "token"
-//@Success 200 {object} []model.Announcement "{"msg":"获取成功"}"
-//@Failure 203 {object} error.Error "{"error_code":"20001","message":"Fail."}"
-//@Failure 401 {object} error.Error "{"error_code":"10001","message":"Token Invalid."} 身份验证失败 重新登录"
-//@Failure 400 {object} error.Error "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
-//@Router /user/publisher [GET]
+// @Summary  通告
+// @Tags user
+// @Description 查看用户发布过的通告
+// @Accept application/json
+// @Produce application/json
+// @Param token header string true "token"
+// @Success 200 {object} []model.Announcement "{"msg":"获取成功"}"
+// @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
+// @Router /api/v1/user/publisher [get]
 func UserPublished(c *gin.Context) {
 	id, ok := c.Get("student_id")
 	if !ok {
@@ -122,21 +115,21 @@ func UserPublished(c *gin.Context) {
 	handler.SendResponse(c, "获取成功", published)
 }
 
-//@Summary 修改头像
-//@Tags user
-//@Description 修改用户头像
-//@Accept application/json
-//@Produce application/json
-//@Param token header string true "token"
-//@Param file formData file true "文件"
-//@Success 200 {object} model.user "{"mgs":"success"}"
-//@Failure 200 {object} err.Error "绑定发生错误"
-//@Failure 200 {object} err.Error "文件上传错误"
-//@Failure 200 {object} err.Error "无法创建文件夹"
-//@Failure 200 {object} err.Error "无法保存文件"
-//@Failure 200 {object} err.Error "数据无法更新"
-//@Failure 404 "该用户不存在"
-//@Router /user/profile
+// @Summary 修改头像
+// @Tags user
+// @Description 修改用户头像
+// @Accept application/json
+// @Produce application/json
+// @Param token header string true "token"
+// @Param file formData file true "文件"
+// @Success 200 {object} model.User "{"mgs":"success"}"
+// @Failure 200 {object} errno.Errno "绑定发生错误"
+// @Failure 200 {object} errno.Errno "文件上传错误"
+// @Failure 200 {object} errno.Errno "无法创建文件夹"
+// @Failure 200 {object} errno.Errno "无法保存文件"
+// @Failure 200 {object} errno.Errno "数据无法更新"
+// @Failure 404 "该用户不存在"
+// @Router /api/v1/user/profile [post]
 func UpdateUserProfile(c *gin.Context) {
 	var user model.User
 	if err := c.ShouldBind(&user); err != nil {
