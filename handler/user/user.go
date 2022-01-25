@@ -3,9 +3,8 @@ package user
 import (
 	"blackboard/handler"
 	"blackboard/model"
-	"blackboard/service/user"
 	"database/sql"
-	"encoding/base64"
+	// "encoding/base64"
 	"fmt"
 	"github.com/Wishforpeace/My-Tool/utils"
 	"github.com/gin-gonic/gin"
@@ -30,10 +29,10 @@ import (
 // @Failure 500 {object} error.Error "{"error_code":"30001", "message":"Fail."} 失败"
 // @Router /user/Info [GET]
 func UserInfo(c *gin.Context) {
-	token := c.Request.Header.Get("token")
-	id, err := user.VerifyToken(token)
-	u, e := model.GetUserInfo(id)
-	if err != nil || e != nil {
+	id, ok := c.Get("student_id")
+	ID := id.(string)
+	u, e := model.GetUserInfo(ID)
+	if !ok || e != nil {
 		c.HTML(http.StatusOK, "error.tmpl", gin.H{
 			"error": e,
 		})
@@ -57,29 +56,17 @@ func UserInfo(c *gin.Context) {
 // @Failure 500 {object} error.Error "{"error_code":"30001", "message":"Fail."} 失败"
 // @Router /user/changename [put]
 func ChangeUserName(c *gin.Context) {
-	token := c.Request.Header.Get("token")
-	id, err := user.VerifyToken(token)
-	if err != nil {
-		fmt.Println(err)
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "Token Invalid."})
-		return
-	}
-	var user model.User
+	user := model.User{}
 	if err := c.BindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Lack Param Or Param Not Satisfiable."})
 		return
-	}
-
-	user.StudentID = id
-	if user.PassWord != "" {
-		user.PassWord = base64.StdEncoding.EncodeToString([]byte(user.PassWord))
 	}
 	if err := model.ChangeName(user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "更改失败"})
 		return
 	}
 	handler.SendResponse(c, "修改成功", nil)
-	c.Redirect(http.StatusMovedPermanently, "/user/Info"+id)
+	c.Redirect(http.StatusMovedPermanently, "/user/Info"+user.StudentID)
 }
 
 //@Summary  查看用户收藏
@@ -94,14 +81,12 @@ func ChangeUserName(c *gin.Context) {
 //@Failure 400 {object} error.Error "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
 //@Router /user/colletion [GET]
 func CheckCollections(c *gin.Context) {
-	token := c.Request.Header.Get("token")
-	id, err := user.VerifyToken(token)
-	if err != nil {
-		fmt.Println(err)
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "Token Invalid."})
-		return
+	id, ok := c.Get("student_id")
+	if !ok {
+		handler.SendBadRequest(c, "没有ID", ok)
 	}
-	collect, err := model.GetCollection(id)
+	ID := id.(string)
+	collect, err := model.GetCollection(ID)
 	if err != nil {
 		c.JSON(http.StatusNonAuthoritativeInfo, gin.H{
 			"message": "Fail.",
@@ -122,16 +107,12 @@ func CheckCollections(c *gin.Context) {
 //@Failure 400 {object} error.Error "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
 //@Router /user/publisher [GET]
 func UserPublished(c *gin.Context) {
-	token := c.Request.Header.Get("token")
-	id, err := user.VerifyToken(token)
-	if err != nil {
-		fmt.Println(err)
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"message": "Token Invalid",
-		})
-		return
+	id, ok := c.Get("student_id")
+	if !ok {
+		handler.SendBadRequest(c, "没有ID", ok)
 	}
-	published, err := model.GetPublished(id)
+	ID := id.(string)
+	published, err := model.GetPublished(ID)
 	if err != nil {
 		c.JSON(http.StatusNonAuthoritativeInfo, gin.H{
 			"message": "Token Invalid",

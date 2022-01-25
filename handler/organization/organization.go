@@ -3,7 +3,6 @@ package organization
 import (
 	"blackboard/handler"
 	"blackboard/model"
-	"blackboard/service/user"
 	"database/sql"
 	"fmt"
 	"log"
@@ -30,13 +29,11 @@ import (
 // @Failure 500 {object} error.Error "{"error_code":"30001", "message":"Fail."} 失败"
 // @Router /organization/personal/created
 func CheckAll(c *gin.Context) {
-	token := c.Request.Header.Get("token")
-	_, err := user.VerifyToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "Token Invalid"})
-		return
-	}
-	org, err := model.GetAllOrganizations("")
+	var (
+		org []model.Organization
+		err error
+	)
+	org, err = model.GetAllOrganizations("查看所有组织")
 	if err != nil {
 		c.JSON(http.StatusNonAuthoritativeInfo, gin.H{"message": "查询失败."})
 		return
@@ -59,13 +56,12 @@ func CheckAll(c *gin.Context) {
 // @Failure 500 {object} error.Error "{"error_code":"30001", "message":"Fail."} 失败"
 // @Router /organization/personal/created
 func CheckCreated(c *gin.Context) {
-	token := c.Request.Header.Get("token")
-	id, err := user.VerifyToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "Token Invalid"})
-		return
+	id, ok := c.Get("student_id")
+	if !ok {
+		handler.SendBadRequest(c, "未输入身份", "null")
 	}
-	created, err := model.GetCreated(id)
+	ID := id.(string)
+	created, err := model.GetCreated(ID)
 	if err != nil {
 		c.JSON(http.StatusNonAuthoritativeInfo, gin.H{"message": "Fail."})
 		return
@@ -86,13 +82,12 @@ func CheckCreated(c *gin.Context) {
 // @Failure 500 {object} error.Error "{"error_code":"30001", "message":"Fail."} 失败"
 // @Router /organization/personal/following
 func CheckFollowing(c *gin.Context) {
-	token := c.Request.Header.Get("token")
-	id, err := user.VerifyToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "Token Invalid"})
-		return
+	id, ok := c.Get("student_id")
+	if !ok {
+		handler.SendBadRequest(c, "未输入身份", "null")
 	}
-	following, err := model.GetFollowing(id)
+	ID := id.(string)
+	following, err := model.GetFollowing(ID)
 	if err != nil {
 		c.JSON(http.StatusNonAuthoritativeInfo, gin.H{"message": "Fail."})
 		return
@@ -119,12 +114,6 @@ type Detail struct {
 }
 
 func CheckDetails(c *gin.Context) {
-	token := c.Request.Header.Get("token")
-	_, err := user.VerifyToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "Token Invalid"})
-		return
-	}
 	var details Detail
 	if e := c.ShouldBindJSON(&details); e != nil {
 		c.HTML(http.StatusOK, "error.tmpl", gin.H{
@@ -158,12 +147,6 @@ func CheckDetails(c *gin.Context) {
 // @Failure 400 {object} error.Error "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
 // @Router /organization/create
 func CreateOne(c *gin.Context) {
-	token := c.Request.Header.Get("token")
-	_, err := user.VerifyToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "Token Invalid"})
-		return
-	}
 	var org model.Organization
 	if err := c.BindJSON(&org); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -225,19 +208,12 @@ func CreateOne(c *gin.Context) {
 // @Failure 400 {object} error.Error "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
 // @Router /organization/personal/follow
 func FollowOneOrganization(c *gin.Context) {
-	token := c.Request.Header.Get("token")
-	_, err := user.VerifyToken(token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "Token Invalid"})
-		return
-	}
 	var following model.FollowingOrganization
 	if err := c.BindJSON(&following); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Lack Param Or Param Not Satisfiable.",
 		})
 	}
-
 	result := model.DB.Create(&following)
 	if result.Error != nil {
 		c.JSON(http.StatusBadRequest, "Fail.")

@@ -13,14 +13,22 @@ type Data struct {
 //Response 请求响应
 type Response struct {
 	Code    int         `json:"code"`
-	Message string      `json:"msg"`
+	Message interface{} `json:"msg"`
 	Data    interface{} `json:"data"`
 } //@name response
 
 //
-func SendResponse(c *gin.Context, message string, data interface{}) {
+func SendResponse(c *gin.Context, message interface{}, data interface{}) {
 	c.JSON(http.StatusOK, Response{
 		Code:    http.StatusOK,
+		Message: message,
+		Data:    data,
+	})
+}
+
+func SendBadRequest(c *gin.Context, message interface{}, data interface{}) {
+	c.JSON(http.StatusBadRequest, Response{
+		Code:    http.StatusBadRequest,
 		Message: message,
 		Data:    data,
 	})

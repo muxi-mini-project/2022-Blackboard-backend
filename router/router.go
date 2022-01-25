@@ -1,11 +1,10 @@
 package router
 
 import (
-	// "blackboard/handler/organization"
-	// "blackboard/handler"
 	"blackboard/handler/announcement"
 	"blackboard/handler/organization"
 	"blackboard/handler/user"
+	"blackboard/router/middleware"
 	"net/http"
 	"path/filepath"
 
@@ -20,12 +19,16 @@ func Router(r *gin.Engine) {
 	r.StaticFile("/favicon.ico", "./favicon.ico")
 	r.Static("/statics", "./statics/")
 	r.StaticFS("/avatar", http.Dir(filepath.Join(utils.RootPath(), "avatar")))
+	//登录
+	auth := r.Group("/api/v1/login")
+	{
+		auth.POST("", user.Login)
+	}
 
 	//user:
 	g1 := r.Group("/api/v1/user")
+	g1.Use(middleware.Auth)
 	{
-		//登录
-		g1.POST("", user.Login)
 
 		//查看信息
 		g1.GET("Info", user.UserInfo)
@@ -46,6 +49,7 @@ func Router(r *gin.Engine) {
 
 	//organizations
 	g2 := r.Group("/api/v1/organization")
+	g2.Use(middleware.Auth)
 	{
 		//查看所有组织
 		g2.GET("", organization.CheckAll)
@@ -67,6 +71,7 @@ func Router(r *gin.Engine) {
 	}
 	//announcement
 	g3 := r.Group("/api/v1/announcement")
+	g3.Use(middleware.Auth)
 	{
 		//查看最新通知
 		g3.GET("", announcement.CheckAllPubilshed)
@@ -78,7 +83,7 @@ func Router(r *gin.Engine) {
 		g3.POST("/publish", announcement.PublishNews)
 
 		//删除通知
-		g3.DELETE("/delete", announcement.DeletePublished)
+		g3.DELETE("/delete/:announcement_id", announcement.DeletePublished)
 
 		//收藏通知
 		g3.POST("/collect", announcement.Collect)

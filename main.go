@@ -13,9 +13,9 @@ import (
 	// "github.com/spf13/viper"
 )
 
-//@title BlackBoard API
-//@version 1.2.0
-//@description 黑££板API
+// @title BlackBoard API
+// @version 1.0.0
+// @description 黑££板API
 // @termsOfService http://swagger.io/terrms/
 // @contact.name Wishiforpeace
 // @contact.email 1903180340@qq.com

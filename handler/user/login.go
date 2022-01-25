@@ -3,7 +3,7 @@ package user
 import (
 	"blackboard/handler"
 	"blackboard/model"
-	"blackboard/service/user"
+	"blackboard/pkg/token"
 	"encoding/base64"
 	"log"
 	"net/http"
@@ -24,7 +24,7 @@ import (
 // @Failure 401 {object} error.Error "{"error_code":"10001", "message":"Password or account wrong."} 身份认证失败 重新登录"
 // @Failure 400 {object} error.Error "{"error_code":"20001", "message":"Fail."} or {"error_code":"00002", "message":"Lack Param Or Param Not Satisfiable."}"
 // @Failure 500 {object} error.Error "{"error_code":"30001", "message":"Fail."} 失败"
-// @Router /user/login [post]
+// @Router /login [post]
 func Login(c *gin.Context) {
 	var u model.User
 	//
@@ -61,14 +61,15 @@ func Login(c *gin.Context) {
 		}
 	}
 
-	claims := &user.Jwt{StudentID: u.StudentID}
+	claims := &token.Jwt{StudentID: u.StudentID}
 
 	claims.ExpiresAt = time.Now().Add(200 * time.Hour).Unix()
 	claims.IssuedAt = time.Now().Unix()
 
-	var Secret = "vinegar"
+	var Secret = "blackboard" + u.PassWord
 
 	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	//通过密码和保密字段加密
 	signedToken, err := token.SignedString([]byte(Secret))
 	if err != nil {
 		log.Println(err)

@@ -10,7 +10,7 @@ import (
 type User struct {
 	gorm.Model
 	StudentID string `json:"student_id" gorm:"student_id"`
-	PassWord  string `json:"password" gorm:"password"`
+	PassWord  string `json:"password" gorm:"column:password"`
 	NickName  string `json:"nickname" gorm:"nickname"`
 	Avatar    sql.NullString
 }
