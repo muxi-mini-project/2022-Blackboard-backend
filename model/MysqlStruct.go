@@ -1,14 +1,18 @@
 package model
 
-import "github.com/jinzhu/gorm"
+import (
+	"database/sql"
+
+	"github.com/jinzhu/gorm"
+)
 
 //用户信息
 type User struct {
 	gorm.Model
-	StudentID   string `json:"student_id" gorm:"student_id"`
-	PassWord    string `json:"password" gorm:"password"`
-	NickName    string `json:"nickname" gorm:"nickname"`
-	HeadPotrait string `json:"headpotrait" gorm:"headportrait"`
+	StudentID string `json:"student_id" gorm:"student_id"`
+	PassWord  string `json:"password" gorm:"column:password"`
+	NickName  string `json:"nickname" gorm:"nickname"`
+	Avatar    sql.NullString
 }
 
 //用户收藏
@@ -30,10 +34,10 @@ type FollowingOrganization struct {
 //组织信息
 type Organization struct {
 	gorm.Model
-	OrganizationLogo  string `json:"organization_logo" gorm:"org_logo"`
+	FounderID         string `json:"founder_id" gorm:"founder_id"`
 	OrganizationName  string `json:"organization_name" gorm:"org_name"`
 	OrganizationIntro string `json:"intro" gorm:"intro"`
-	FounderID         string `json:"founder_id" gorm:"founder_id"`
+	Avatar            sql.NullString
 }
 
 //组织公告分组

@@ -1,4 +1,4 @@
-package user
+package token
 
 import (
 	"errors"
@@ -16,22 +16,21 @@ type Jwt struct {
 	jwt.StandardClaims
 }
 
-//user:
-func VerifyToken(strToken string) (string, error) {
-	//解析token
+//ResolveToke resloves token
+func ResolveToken(strToken string) (*Jwt, error) {
 	token, err := jwt.ParseWithClaims(strToken, &Jwt{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte("vinegar"), nil
+		return []byte("blackboard"), nil
 
 	})
 	if err != nil {
-		return "", errors.New(ErrorReasonServerBusy + ",或token解析失败")
+		return nil, errors.New(ErrorReasonServerBusy + ",或token解析失败")
 	}
 	claims, ok := token.Claims.(*Jwt)
 	if !ok {
-		return "", errors.New(ErrorReasonReLogin)
+		return nil, errors.New(ErrorReasonReLogin)
 	}
 	if err := token.Claims.Valid(); err != nil {
-		return "", errors.New(ErrorReasonReLogin)
+		return nil, errors.New(ErrorReasonReLogin)
 	}
-	return claims.StudentID, nil
+	return claims, nil
 }

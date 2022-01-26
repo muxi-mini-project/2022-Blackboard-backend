@@ -3,41 +3,42 @@ package user
 import (
 	"blackboard/handler"
 	"blackboard/model"
-	"blackboard/service/user"
-	"encoding/base64"
+	"database/sql"
+	// "encoding/base64"
 	"fmt"
-
+	"github.com/Wishforpeace/My-Tool/utils"
 	"github.com/gin-gonic/gin"
+	"log"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
+	"time"
 )
 
-//@Summary  用户信息
+// @Summary  用户信息
 // @Tags user
 // @Description 获取用户信息
 // @Accept application/json
 // @Produce application/json
 // @Param token header string true "token"
 // @Success 200 {object} model.User "{"msg":"获取成功"}"
-// @Failure 203 {object} error.Error "{"error_code":"20001", "message":"Fail."}"
-// @Failure 401 {object} error.Error "{"error_code":"10001", "message":"Token Invalid."} 身份认证失败 重新登录"
-// @Failure 400 {object} error.Error "{"error_code":"20001", "message":"Fail."} or {"error_code":"00002", "message":"Lack Param Or Param Not Satisfiable."}"
-// @Failure 500 {object} error.Error "{"error_code":"30001", "message":"Fail."} 失败"
-// @Router /user [get]
+// @Failure 400 {object} errno.Errno "{"error_code":"20001", "message":"Fail."} or {"error_code":"00002", "message":"Lack Param Or Param Not Satisfiable."}"
+// @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
+// @Router /api/v1/user/Info [get]
 func UserInfo(c *gin.Context) {
-	token := c.Request.Header.Get("token")
-	id, err := user.VerifyToken(token)
-	if err != nil {
-		fmt.Println(err)
-		c.JSON(401, gin.H{"message": "Token Invalid"})
-		return
+	id, ok := c.Get("student_id")
+	ID := id.(string)
+	u, e := model.GetUserInfo(ID)
+	if !ok || e != nil {
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": e,
+		})
 	}
-	u, err := model.GetUserInfo(id)
-	if err != nil {
-		fmt.Println(err)
-		c.JSON(203, gin.H{"message": "Fail."})
-		return
-	}
+	c.HTML(http.StatusOK, "user_profile.tmppl", gin.H{
+		"user": u,
+	})
 	handler.SendResponse(c, "获取成功", u)
-
 }
 
 // @Summary  修改用户名
@@ -48,90 +49,128 @@ func UserInfo(c *gin.Context) {
 // @Param token header string true "token"
 // @Param User body model.User true "需要修改的用户信息"
 // @Success 200 {object} handler.Response "{"msg":"修改成功"}"
-// @Failure 401 {object} error.Error "{"error_code":"10001", "message":"Token Invalid."} 身份认证失败 重新登录"
-// @Failure 400 {object} error.Error "{"error_code":"20001", "message":"Fail."} or {"error_code":"00002", "message":"Lack Param Or Param Not Satisfiable."}"
-// @Failure 500 {object} error.Error "{"error_code":"30001", "message":"Fail."} 失败"
-// @Router /user/changename [put]
+// @Failure 400 {object} errno.Errno "{"error_code":"20001", "message":"Fail."} or {"error_code":"00002", "message":"Lack Param Or Param Not Satisfiable."}"
+// @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
+// @Router /api/v1/user/changename [put]
 func ChangeUserName(c *gin.Context) {
-	token := c.Request.Header.Get("token")
-	id, err := user.VerifyToken(token)
-	if err != nil {
-		fmt.Println(err)
-		c.JSON(401, gin.H{"message": "Token Invalid."})
-		return
-	}
-	var user model.User
+	user := model.User{}
 	if err := c.BindJSON(&user); err != nil {
-		c.JSON(400, gin.H{"message": "Lack Param Or Param Not Satisfiable."})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Lack Param Or Param Not Satisfiable."})
 		return
-	}
-
-	user.StudentID = id
-	if user.PassWord != "" {
-		user.PassWord = base64.StdEncoding.EncodeToString([]byte(user.PassWord))
 	}
 	if err := model.ChangeName(user); err != nil {
-		c.JSON(400, gin.H{"message": "更改失败"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "更改失败"})
 		return
 	}
 	handler.SendResponse(c, "修改成功", nil)
+	c.Redirect(http.StatusMovedPermanently, "/user/Info"+user.StudentID)
 }
 
-//@Summary  查看用户收藏
-//@Tags user
-//@Description 查看用户收藏的通告
-//@Accept application/json
-//@Produce application/json
-//@Param token header string true "token"
-//@Success 200 {object} []model.Collection "{"msg":"获取成功"}"
-//@Failure 203 {object} error.Error "{"error_code":"20001","message":"Fail."}"
-//@Failure 401 {object} error.Error "{"error_code":"10001","message":"Token Invalid."} 身份验证失败 重新登录"
-//@Failure 400 {object} error.Error "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
-//@Router /user/colletion
+// @Summary  查看用户收藏
+// @Tags user
+// @Description 查看用户收藏的通告
+// @Accept application/json
+// @Produce application/json
+// @Param token header string true "token"
+// @Success 200 {object} []model.Collection "{"msg":"获取成功"}"
+// @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
+// @Router /api/v1/user/colletion [get]
 func CheckCollections(c *gin.Context) {
-	token := c.Request.Header.Get("token")
-	id, err := user.VerifyToken(token)
-	if err != nil {
-		fmt.Println(err)
-		c.JSON(401, gin.H{"message": "Token Invalid."})
-		return
+	id, ok := c.Get("student_id")
+	if !ok {
+		handler.SendBadRequest(c, "没有ID", ok)
 	}
-	collect, err := model.GetCollection(id)
+	ID := id.(string)
+	collect, err := model.GetCollection(ID)
 	if err != nil {
-		c.JSON(203, gin.H{
+		c.JSON(http.StatusNonAuthoritativeInfo, gin.H{
 			"message": "Fail.",
 		})
 	}
 	handler.SendResponse(c, "获取成功", collect)
 }
 
-//@Summary  通告
-//@Tags user
-//@Description 查看用户发布过的通告
-//@Accept application/json
-//@Produce application/json
-//@Param token header string true "token"
-//@Success 200 {object} []model.Announcement "{"msg":"获取成功"}"
-//@Failure 203 {object} error.Error "{"error_code":"20001","message":"Fail."}"
-//@Failure 401 {object} error.Error "{"error_code":"10001","message":"Token Invalid."} 身份验证失败 重新登录"
-//@Failure 400 {object} error.Error "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
-//@Router /user/publisher
+// @Summary  通告
+// @Tags user
+// @Description 查看用户发布过的通告
+// @Accept application/json
+// @Produce application/json
+// @Param token header string true "token"
+// @Success 200 {object} []model.Announcement "{"msg":"获取成功"}"
+// @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
+// @Router /api/v1/user/publisher [get]
 func UserPublished(c *gin.Context) {
-	token := c.Request.Header.Get("token")
-	id, err := user.VerifyToken(token)
-	if err != nil {
-		fmt.Println(err)
-		c.JSON(401, gin.H{
-			"message": "Token Invalid",
-		})
-		return
+	id, ok := c.Get("student_id")
+	if !ok {
+		handler.SendBadRequest(c, "没有ID", ok)
 	}
-	published, err := model.GetPublished(id)
+	ID := id.(string)
+	published, err := model.GetPublished(ID)
 	if err != nil {
-		c.JSON(203, gin.H{
+		c.JSON(http.StatusNonAuthoritativeInfo, gin.H{
 			"message": "Token Invalid",
 		})
 		return
 	}
 	handler.SendResponse(c, "获取成功", published)
+}
+
+// @Summary 修改头像
+// @Tags user
+// @Description 修改用户头像
+// @Accept application/json
+// @Produce application/json
+// @Param token header string true "token"
+// @Param file formData file true "文件"
+// @Success 200 {object} model.User "{"mgs":"success"}"
+// @Failure 200 {object} errno.Errno "绑定发生错误"
+// @Failure 200 {object} errno.Errno "文件上传错误"
+// @Failure 200 {object} errno.Errno "无法创建文件夹"
+// @Failure 200 {object} errno.Errno "无法保存文件"
+// @Failure 200 {object} errno.Errno "数据无法更新"
+// @Failure 404 "该用户不存在"
+// @Router /api/v1/user/profile [post]
+func UpdateUserProfile(c *gin.Context) {
+	var user model.User
+	if err := c.ShouldBind(&user); err != nil {
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": err.Error(),
+		})
+		log.Panicln("绑定发生错误 ", err.Error())
+	}
+	file, e := c.FormFile("avatar-file")
+	if e != nil {
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": e,
+		})
+		log.Panicln("文件上传错误", e.Error())
+	}
+	path := utils.RootPath()
+	path = filepath.Join(path, "avatar")
+	fmt.Println("path =>", path)
+	e = os.MkdirAll(path, os.ModePerm)
+	if e != nil {
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": e,
+		})
+		log.Panicln("无法创建文件夹", e.Error())
+	}
+	fileName := strconv.FormatInt(time.Now().Unix(), 10) + file.Filename
+	e = c.SaveUploadedFile(file, filepath.Join(path, fileName))
+	if e != nil {
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": e,
+		})
+		log.Panicln("无法保存文件", e.Error())
+	}
+	avatarUrl := "/avatar/" + fileName
+	user.Avatar = sql.NullString{String: avatarUrl}
+	e = user.UpdateUser(user.StudentID)
+	if e != nil {
+		c.HTML(http.StatusOK, "error.tmpl", gin.H{
+			"error": e,
+		})
+		log.Panicln("数据无法更新", e.Error())
+	}
+	c.Redirect(http.StatusMovedPermanently, "/user/profile?id="+user.StudentID)
 }
