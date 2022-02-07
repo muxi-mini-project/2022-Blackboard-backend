@@ -27,7 +27,7 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/announcement": {
+        "/announcement": {
             "get": {
                 "description": "用户查看已经发布过的通知",
                 "consumes": [
@@ -74,7 +74,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/announcement/collect": {
+        "/announcement/collect": {
             "post": {
                 "description": "用户将通知加入自己的收藏",
                 "consumes": [
@@ -127,7 +127,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/announcement/collect/cancel": {
+        "/announcement/collect/cancel": {
             "delete": {
                 "consumes": [
                     "application/json"
@@ -171,7 +171,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/announcement/create_group": {
+        "/announcement/create_group": {
             "post": {
                 "description": "仅组织创建者可新建通告分组",
                 "consumes": [
@@ -197,7 +197,7 @@ var doc = `{
                         "name": "group",
                         "in": "body",
                         "schema": {
-                            "$ref": "#/definitions/model.Group"
+                            "$ref": "#/definitions/model.Grouping"
                         }
                     }
                 ],
@@ -207,7 +207,7 @@ var doc = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.Group"
+                                "$ref": "#/definitions/model.Grouping"
                             }
                         }
                     },
@@ -226,7 +226,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/announcement/delete": {
+        "/announcement/delete": {
             "delete": {
                 "description": "仅组织创建者可删除通告",
                 "consumes": [
@@ -286,7 +286,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/announcement/publish": {
+        "/announcement/publish": {
             "post": {
                 "description": "仅组织创建者可发布新的通知",
                 "consumes": [
@@ -348,7 +348,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/login": {
+        "/login": {
             "post": {
                 "description": "一站式登录",
                 "produces": [
@@ -397,7 +397,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/organization/create": {
+        "/organization/create": {
             "post": {
                 "description": "用户新建组织以便发布信息",
                 "consumes": [
@@ -438,7 +438,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/organization/personal/created": {
+        "/organization/personal/created": {
             "get": {
                 "description": "查看用户创建的组织",
                 "consumes": [
@@ -485,7 +485,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/organization/personal/follow": {
+        "/organization/personal/follow": {
             "post": {
                 "description": "用户关注一个已经被创建的组织",
                 "consumes": [
@@ -526,7 +526,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/organization/personal/following": {
+        "/organization/personal/following": {
             "get": {
                 "description": "查看用户关注的组织",
                 "consumes": [
@@ -573,51 +573,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/user/Info": {
-            "get": {
-                "description": "获取用户信息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "用户信息",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "token",
-                        "name": "token",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{\"msg\":\"获取成功\"}",
-                        "schema": {
-                            "$ref": "#/definitions/model.User"
-                        }
-                    },
-                    "400": {
-                        "description": "{\"error_code\":\"20001\", \"message\":\"Fail.\"} or {\"error_code\":\"00002\", \"message\":\"Lack Param Or Param Not Satisfiable.\"}",
-                        "schema": {
-                            "$ref": "#/definitions/errno.Errno"
-                        }
-                    },
-                    "500": {
-                        "description": "{\"error_code\":\"30001\", \"message\":\"Fail.\"} 失败",
-                        "schema": {
-                            "$ref": "#/definitions/errno.Errno"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/user/changename": {
+        "/user/changename": {
             "put": {
                 "description": "接收新的User结构体来修改用户名",
                 "consumes": [
@@ -670,7 +626,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/user/colletion": {
+        "/user/colletion": {
             "get": {
                 "description": "查看用户收藏的通告",
                 "consumes": [
@@ -711,7 +667,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/user/profile": {
+        "/user/profile": {
             "post": {
                 "description": "修改用户头像",
                 "consumes": [
@@ -753,7 +709,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/user/publisher": {
+        "/user/publisher": {
             "get": {
                 "description": "查看用户发布过的通告",
                 "consumes": [
@@ -830,7 +786,7 @@ var doc = `{
                     "type": "string"
                 },
                 "group_id": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "group_name": {
                     "type": "string"
@@ -839,7 +795,7 @@ var doc = `{
                     "type": "integer"
                 },
                 "organization_id": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "organization_name": {
                     "type": "string"
@@ -854,12 +810,15 @@ var doc = `{
         },
         "model.Collection": {
             "type": "object",
+            "required": [
+                "announcement_id"
+            ],
             "properties": {
                 "announcement": {
                     "type": "string"
                 },
                 "announcement_id": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "createdAt": {
                     "type": "string"
@@ -891,7 +850,7 @@ var doc = `{
                     "type": "integer"
                 },
                 "organization_id": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "organization_name": {
                     "type": "string"
@@ -904,8 +863,11 @@ var doc = `{
                 }
             }
         },
-        "model.Group": {
+        "model.Grouping": {
             "type": "object",
+            "required": [
+                "organization_name"
+            ],
             "properties": {
                 "createdAt": {
                     "type": "string"
@@ -920,7 +882,7 @@ var doc = `{
                     "type": "integer"
                 },
                 "organization_id": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "organization_name": {
                     "type": "string"
@@ -932,6 +894,9 @@ var doc = `{
         },
         "model.Organization": {
             "type": "object",
+            "required": [
+                "organization_name"
+            ],
             "properties": {
                 "avatar": {
                     "$ref": "#/definitions/sql.NullString"
@@ -961,6 +926,10 @@ var doc = `{
         },
         "model.User": {
             "type": "object",
+            "required": [
+                "password",
+                "student_id"
+            ],
             "properties": {
                 "avatar": {
                     "$ref": "#/definitions/sql.NullString"

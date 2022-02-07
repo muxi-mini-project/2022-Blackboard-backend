@@ -2,15 +2,11 @@ package auth
 
 import (
 	"blackboard/pkg/token"
+
 	"errors"
 
 	"github.com/gin-gonic/gin"
 )
-
-type Context struct {
-	ID        string
-	ExpiresAt int64 //过期时间
-}
 
 var (
 	// ErrMissingHeader means the `Authorization` header was empty.
@@ -19,21 +15,14 @@ var (
 	ErrTokenInvalid = errors.New("the token is invalid")
 )
 
-func ParseRequest(c *gin.Context) (*Context, error) {
-	header := c.Request.Header.Get("Authorization")
-	if len(header) == 0 {
+func ParseRequest(c *gin.Context) (*token.Jwt, error) {
+	tokenStr := c.GetHeader("Authorization")
+	if len(tokenStr) == 0 {
+		c.Abort()
 		return nil, ErrMissingHeader
+	} else {
+		tokenStr = tokenStr[7:]
+		claims, err := token.ResolveToken(tokenStr)
+		return claims, err
 	}
-	return Parse(header)
-}
-
-func Parse(tokenStr string) (*Context, error) {
-	t, err := token.ResolveToken(tokenStr)
-	if err != nil {
-		return nil, err
-	}
-	return &Context{
-		ID:        t.StudentID,
-		ExpiresAt: t.ExpiresAt,
-	}, nil
 }

@@ -17,7 +17,7 @@ import (
 // @Success 200 {object} []model.Announcement "{"msg":"查看"}"
 // @Failure 203 {object} errno.Errno "{"error_code":"20001","message":"Fail."}"
 // @Failure 401 {object} errno.Errno "{"error_code":"10001","message":"Token Invalid."} 身份验证失败 重新登录"
-// @Router /api/v1/announcement [get]
+// @Router /announcement [get]
 func CheckAllPubilshed(c *gin.Context) {
 	announcement, err := model.GetAnnouncements(" ")
 	if err != nil {
@@ -38,30 +38,30 @@ func CheckAllPubilshed(c *gin.Context) {
 // @Failure 400 {object} errno.Errno
 // @Failure 500 {object} errno.Errno
 // @Failure 412 {object} errno.Errno "{"msg":"身份认证失败"}"
-// @Router /api/v1/announcement/publish [post]
+// @Router /announcement/publish [post]
 func PublishNews(c *gin.Context) {
-	id, ok := c.Get("student_id")
-	if !ok {
-		handler.SendBadRequest(c, "未输入身份", nil)
-	}
-	ID := id.(string)
+	ID := c.MustGet("student_id").(string)
 	var announcement model.Announcement
 	err := c.BindJSON(&announcement)
 	if err != nil {
 		handler.SendBadRequest(c, errno.ErrBind, nil)
 		return
 	}
+	announcement.PublisherID = ID
+	announcement.OrganizationID = model.GetOrgID(announcement.OrganizationName)
+	announcement.GroupID = model.GetGroupID(announcement.GroupName, announcement.GroupID)
 	verify := model.JudgeFounder(ID, announcement.OrganizationID)
 	if !verify {
+		c.JSON(412, gin.H{
+			"message": "身份认证错误",
+		})
+
+	} else {
 		result := model.DB.Create(&announcement)
 		if result.Error != nil {
 			handler.SendError(c, errno.ErrDatabase, nil)
 			return
 		}
-	} else {
-		c.JSON(412, gin.H{
-			"message": "身份认证错误",
-		})
 	}
 	handler.SendResponse(c, "创建成功", announcement)
 }
@@ -72,33 +72,30 @@ func PublishNews(c *gin.Context) {
 // @Accept application/json
 // @Produce application/json
 // @Param token header string true "token"
-// @Param group body model.Group ture "新建分组"
-// @Success 200 {object} []model.Group "{"msg":"创建成功"}"
+// @Param group body model.Grouping ture "新建分组"
+// @Success 200 {object} []model.Grouping "{"msg":"创建成功"}"
 // @Failure 400 {object} errno.Errno
 // @Failure 412 {object} errno.Errno "{"msg":"身份认证失败"}"
-// @Router /api/v1/announcement/create_group [post]
+// @Router /announcement/create_group [post]
 func CreateGroup(c *gin.Context) {
-	id, ok := c.Get("student_id")
-	if !ok {
-		handler.SendBadRequest(c, "未输入身份", "null")
-	}
-	ID := id.(string)
-	var group model.Group
+	ID := c.MustGet("student_id").(string)
+	var group model.Grouping
 	err := c.BindJSON(&group)
-	if err != nil || group.OrganizationID == "" {
+	if err != nil {
 		handler.SendBadRequest(c, errno.ErrBind, nil)
 		return
 	}
 	verfify := model.JudgeFounder(ID, group.OrganizationID)
-	if verfify {
-		result := model.DB.Create(&group)
-		if result.Error != nil {
-			handler.SendError(c, errno.ErrDatabase, nil)
-		}
-	} else {
+	if !verfify {
 		c.JSON(412, gin.H{
 			"message": "身份认证失败",
 		})
+		return
+	}
+	group.OrganizationID = model.GetOrgID(group.OrganizationName)
+	e := model.CreateGroup(group)
+	if e != nil {
+		handler.SendError(c, errno.ErrDatabase, nil)
 	}
 	handler.SendResponse(c, "创建成功", group)
 }
@@ -115,13 +112,9 @@ func CreateGroup(c *gin.Context) {
 // @Failure 500 {object} errno.Errno
 // @Failure 203 {object} errno.Errno "{"error_code":"20001","message":"Fail."}"
 // @Failure 412 {object} errno.Errno "{"msg":"身份认证失败"}"
-// @Router /api/v1/announcement/delete [delete]
+// @Router /announcement/delete [delete]
 func DeletePublished(c *gin.Context) {
-	id, ok := c.Get("student_id")
-	if !ok {
-		handler.SendBadRequest(c, "未输入身份", "null")
-	}
-	ID := id.(string)
+	ID := c.MustGet("student_id").(string)
 	AnnoucementID := c.Param("announcement_id")
 	verfify := model.JudgePublisher(ID, AnnoucementID)
 	if verfify {
@@ -129,6 +122,8 @@ func DeletePublished(c *gin.Context) {
 		if err != nil {
 			handler.SendError(c, errno.ErrDatabase, nil)
 			return
+		} else {
+			handler.SendResponse(c, "删除成功", nil)
 		}
 	} else {
 		c.JSON(412, gin.H{
@@ -136,7 +131,7 @@ func DeletePublished(c *gin.Context) {
 		})
 		return
 	}
-	handler.SendResponse(c, "删除成功", nil)
+
 }
 
 // @Summary 收藏通知
@@ -149,22 +144,24 @@ func DeletePublished(c *gin.Context) {
 // @Failure 203 {object} errno.Errno  "{"error_code":"20001","message":"Fail."}"
 // @Failure 400 {object} errno.Errno
 // @Failure 412 {object} errno.Errno  "{"msg":"身份认证失败"}"
-// @Router /api/v1/announcement/collect [post]
+// @Router /announcement/collect [post]
 func Collect(c *gin.Context) {
-	id, _ := c.Get("student_id")
-	ID := id.(string)
+	ID := c.MustGet("student_id").(string)
 	var collect model.Collection
-	collect.StudentID = ID
-	if err := c.BindJSON(&collect); err != nil && collect.AnnouncementID == "" {
+	if err := c.BindJSON(&collect); err != nil {
 		handler.SendBadRequest(c, errno.ErrBind, nil)
 		return
 	}
+	collect.StudentID = ID
+	collect.Announcement = model.CheckAnnouce(collect.AnnouncementID)
 	result := model.DB.Create(&collect)
 	if result.Error != nil {
 		c.JSON(400, gin.H{"message": "Fail"})
 		return
+	} else {
+		handler.SendResponse(c, "关注成功", nil)
 	}
-	handler.SendResponse(c, "关注成功", nil)
+
 }
 
 // @Summary 取消收藏
@@ -177,9 +174,9 @@ func Collect(c *gin.Context) {
 // @Success 200 {object} []model.Collection "{"msg":"取消成功"}"
 // @Failure 200 {object} errno.Errno
 // @Failure 500 {object} errno.Errno
-// @Router /api/v1/announcement/collect/cancel [delete]
+// @Router /announcement/collect/cancel [delete]
 func CancelCollect(c *gin.Context) {
-	CollectID := c.Query("collect_id")
+	CollectID := c.Param("collect_id")
 	err := model.CancelCollect(CollectID)
 	if err != nil {
 		handler.SendError(c, errno.ErrDatabase, nil)

@@ -8,15 +8,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Auth(c *gin.Context) {
-	ctx, err := auth.ParseRequest(c)
-	if err != nil {
-		handler.SendResponse(c, errno.ErrTokenInvalid, err.Error())
-		//终止函数运行
-		c.Abort()
-		return
+func Auth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userClaim, err := auth.ParseRequest(c)
+		if err != nil {
+			handler.SendError(c, errno.ErrTokenInvalid, err.Error())
+			//终止函数运行
+			c.Abort()
+			return
+		}
+
+		// 跨越中间件取值
+		c.Set("student_id", userClaim.StudentID)
+		c.Set("expiresAt", userClaim.StandardClaims)
+
+		c.Next()
 	}
-	//跨越中间件取直
-	c.Set("userID", ctx.ID)
-	c.Set("expiresAt", ctx.ExpiresAt)
+
 }
