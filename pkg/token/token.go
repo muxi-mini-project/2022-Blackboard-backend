@@ -13,24 +13,19 @@ const (
 
 type Jwt struct {
 	StudentID string `json:"student_id"`
-	jwt.StandardClaims
+	*jwt.StandardClaims
 }
 
 //ResolveToke resloves token
 func ResolveToken(strToken string) (*Jwt, error) {
-	token, err := jwt.ParseWithClaims(strToken, &Jwt{}, func(token *jwt.Token) (interface{}, error) {
+	claims := &Jwt{}
+	token, err := jwt.ParseWithClaims(strToken, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte("blackboard"), nil
-
 	})
-	if err != nil {
+	claims, ok := token.Claims.(*Jwt)
+	if err != nil || !ok || !token.Valid {
 		return nil, errors.New(ErrorReasonServerBusy + ",或token解析失败")
 	}
-	claims, ok := token.Claims.(*Jwt)
-	if !ok {
-		return nil, errors.New(ErrorReasonReLogin)
-	}
-	if err := token.Claims.Valid(); err != nil {
-		return nil, errors.New(ErrorReasonReLogin)
-	}
 	return claims, nil
+
 }

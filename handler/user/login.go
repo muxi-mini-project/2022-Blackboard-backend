@@ -3,13 +3,11 @@ package user
 import (
 	"blackboard/handler"
 	"blackboard/model"
-	"blackboard/pkg/token"
+	"blackboard/router/middleware"
 	"encoding/base64"
 	"log"
 	"net/http"
-	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,10 +22,9 @@ import (
 // @Failure 401 {object} errno.Errno "{"error_code":"10001", "message":"Password or account wrong."} 身份认证失败 重新登录"
 // @Failure 400 {object} errno.Errno "{"error_code":"20001", "message":"Fail."} or {"error_code":"00002", "message":"Lack Param Or Param Not Satisfiable."}"
 // @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
-// @Router /api/v1/login [post]
+// @Router /login [post]
 func Login(c *gin.Context) {
 	var u model.User
-	//
 	if err := c.BindJSON(&u); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Lack Param Or Param Not Satisfiable."})
 		return
@@ -47,7 +44,7 @@ func Login(c *gin.Context) {
 			return
 		}
 		//对用户信息初始化
-		u.NickName = "请修改昵称"
+		u.NickName = " "
 		//对密码进行base64加密
 		u.PassWord = base64.StdEncoding.EncodeToString([]byte(u.PassWord))
 		model.DB.Create(&u)
@@ -61,19 +58,9 @@ func Login(c *gin.Context) {
 		}
 	}
 
-	claims := &token.Jwt{StudentID: u.StudentID}
-
-	claims.ExpiresAt = time.Now().Add(200 * time.Hour).Unix()
-	claims.IssuedAt = time.Now().Unix()
-
-	var Secret = "blackboard" + u.PassWord
-
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
-	//通过密码和保密字段加密
-	signedToken, err := token.SignedString([]byte(Secret))
+	signedToken, err := middleware.CreateToken(u.StudentID)
 	if err != nil {
 		log.Println(err)
 	}
-
 	handler.SendResponse(c, "将student_id作为token保留", signedToken)
 }

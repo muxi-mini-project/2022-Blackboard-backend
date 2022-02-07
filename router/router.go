@@ -26,12 +26,13 @@ func Router(r *gin.Engine) {
 	}
 
 	//user:
-	g1 := r.Group("/api/v1/user")
-	g1.Use(middleware.Auth)
+	g1 := r.Group("/api/v1/user").Use(middleware.Auth())
 	{
+		//检验状态
+		g1.GET("", user.Check)
 
 		//查看信息
-		g1.GET("Info", user.UserInfo)
+		g1.GET("/info", user.UserInfo)
 
 		//修改用户名
 		g1.PUT("/changename", user.ChangeUserName)
@@ -48,8 +49,7 @@ func Router(r *gin.Engine) {
 	}
 
 	//organizations
-	g2 := r.Group("/api/v1/organization")
-	g2.Use(middleware.Auth)
+	g2 := r.Group("/api/v1/organization").Use(middleware.Auth())
 	{
 		//查看所有组织
 		g2.GET("", organization.CheckAll)
@@ -70,14 +70,13 @@ func Router(r *gin.Engine) {
 		g2.POST("/follow", organization.FollowOneOrganization)
 	}
 	//announcement
-	g3 := r.Group("/api/v1/announcement")
-	g3.Use(middleware.Auth)
+	g3 := r.Group("/api/v1/announcement").Use(middleware.Auth())
 	{
 		//查看最新通知
 		g3.GET("", announcement.CheckAllPubilshed)
 
 		//新建分组
-		g3.POST("/create_group", announcement.CreateGroup)
+		g3.POST("/group", announcement.CreateGroup)
 
 		//发布通知
 		g3.POST("/publish", announcement.PublishNews)
@@ -89,6 +88,6 @@ func Router(r *gin.Engine) {
 		g3.POST("/collect", announcement.Collect)
 
 		//取消收藏
-		g3.DELETE("/collect/cancel", announcement.CancelCollect)
+		g3.DELETE("/collect/cancel/:collect_id", announcement.CancelCollect)
 	}
 }

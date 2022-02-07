@@ -4,17 +4,24 @@ import (
 	"blackboard/handler"
 	"blackboard/model"
 	"database/sql"
+
 	// "encoding/base64"
 	"fmt"
-	"github.com/Wishforpeace/My-Tool/utils"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/Wishforpeace/My-Tool/utils"
+	"github.com/gin-gonic/gin"
+	// "github.com/jinzhu/gorm"
 )
+
+func Check(c *gin.Context) {
+	handler.SendResponse(c, "成功登录", nil)
+}
 
 // @Summary  用户信息
 // @Tags user
@@ -25,20 +32,25 @@ import (
 // @Success 200 {object} model.User "{"msg":"获取成功"}"
 // @Failure 400 {object} errno.Errno "{"error_code":"20001", "message":"Fail."} or {"error_code":"00002", "message":"Lack Param Or Param Not Satisfiable."}"
 // @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
-// @Router /api/v1/user/Info [get]
+// @Router /user/Info [get]
+
 func UserInfo(c *gin.Context) {
-	id, ok := c.Get("student_id")
-	ID := id.(string)
+	ID := c.MustGet("student_id").(string)
+
 	u, e := model.GetUserInfo(ID)
-	if !ok || e != nil {
-		c.HTML(http.StatusOK, "error.tmpl", gin.H{
-			"error": e,
-		})
+	var Info model.Info
+	if e != nil {
+		handler.SendBadRequest(c, "获取失败", nil)
+	} else {
+		Info = model.Info{
+			Model:     u.Model,
+			StudentID: u.StudentID,
+			NickName:  u.NickName,
+			Avatar:    u.Avatar,
+		}
+		handler.SendResponse(c, "获取成功", Info)
+
 	}
-	c.HTML(http.StatusOK, "user_profile.tmppl", gin.H{
-		"user": u,
-	})
-	handler.SendResponse(c, "获取成功", u)
 }
 
 // @Summary  修改用户名
@@ -51,19 +63,20 @@ func UserInfo(c *gin.Context) {
 // @Success 200 {object} handler.Response "{"msg":"修改成功"}"
 // @Failure 400 {object} errno.Errno "{"error_code":"20001", "message":"Fail."} or {"error_code":"00002", "message":"Lack Param Or Param Not Satisfiable."}"
 // @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
-// @Router /api/v1/user/changename [put]
+// @Router /user/changename [put]
 func ChangeUserName(c *gin.Context) {
-	user := model.User{}
-	if err := c.BindJSON(&user); err != nil {
+	var Info model.Info
+	Info.StudentID = c.MustGet("student_id").(string)
+	if err := c.BindJSON(&Info); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Lack Param Or Param Not Satisfiable."})
 		return
 	}
-	if err := model.ChangeName(user); err != nil {
+	if e := model.ChangeName(Info); e != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "更改失败"})
 		return
 	}
 	handler.SendResponse(c, "修改成功", nil)
-	c.Redirect(http.StatusMovedPermanently, "/user/Info"+user.StudentID)
+	c.Redirect(http.StatusMovedPermanently, "/user/Info"+Info.StudentID)
 }
 
 // @Summary  查看用户收藏
@@ -74,7 +87,7 @@ func ChangeUserName(c *gin.Context) {
 // @Param token header string true "token"
 // @Success 200 {object} []model.Collection "{"msg":"获取成功"}"
 // @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
-// @Router /api/v1/user/colletion [get]
+// @Router /user/colletion [get]
 func CheckCollections(c *gin.Context) {
 	id, ok := c.Get("student_id")
 	if !ok {
@@ -98,7 +111,7 @@ func CheckCollections(c *gin.Context) {
 // @Param token header string true "token"
 // @Success 200 {object} []model.Announcement "{"msg":"获取成功"}"
 // @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
-// @Router /api/v1/user/publisher [get]
+// @Router /user/publisher [get]
 func UserPublished(c *gin.Context) {
 	id, ok := c.Get("student_id")
 	if !ok {
@@ -129,7 +142,7 @@ func UserPublished(c *gin.Context) {
 // @Failure 200 {object} errno.Errno "无法保存文件"
 // @Failure 200 {object} errno.Errno "数据无法更新"
 // @Failure 404 "该用户不存在"
-// @Router /api/v1/user/profile [post]
+// @Router /user/profile [post]
 func UpdateUserProfile(c *gin.Context) {
 	var user model.User
 	if err := c.ShouldBind(&user); err != nil {

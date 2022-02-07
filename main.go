@@ -5,8 +5,6 @@ import (
 	"blackboard/router"
 	"fmt"
 
-	// "fmt"
-
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -47,6 +45,6 @@ func main() {
 	model.Migrate(model.DB)
 	r := gin.Default()
 	router.Router(r)
-	r.Run(":8080")
+	r.Run(":8181")
 	defer model.DB.Close()
 }

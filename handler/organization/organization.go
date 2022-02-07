@@ -25,13 +25,9 @@ import (
 // @Param token header string true "token"
 // @Success 200 {object} []model.Organization "{"msg":"获取成功"}"
 // @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
-// @Router /api/v1/organization/personal/created [get]
+// @Router /organization/personal/created [get]
 func CheckAll(c *gin.Context) {
-	var (
-		org []model.Organization
-		err error
-	)
-	org, err = model.GetAllOrganizations("查看所有组织")
+	org, err := model.GetAllOrganizations(" ")
 	if err != nil {
 		handler.SendError(c, errno.ErrDatabase, nil)
 		return
@@ -48,13 +44,9 @@ func CheckAll(c *gin.Context) {
 // @Success 200 {object} []model.Organization "{"msg":"查询成功"}"
 // @Failure 400 {object} errno.Errno
 // @Failure 500 {object} errno.Errno
-// @Router /api/v1/organization/personal/created [get]
+// @Router /organization/personal/created [get]
 func CheckCreated(c *gin.Context) {
-	id, ok := c.Get("student_id")
-	if !ok {
-		handler.SendBadRequest(c, "未输入ID", nil)
-	}
-	ID := id.(string)
+	ID := c.MustGet("student_id").(string)
 	created, err := model.GetCreated(ID)
 	if err != nil {
 		c.JSON(http.StatusNonAuthoritativeInfo, gin.H{"message": "Fail."})
@@ -72,13 +64,9 @@ func CheckCreated(c *gin.Context) {
 // @Success 200 {object} []model.FollowingOrganization "{"msg":"获取成功"}"
 // @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
 // @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
-// @Router /api/v1/organization/personal/following [get]
+// @Router /organization/personal/following [get]
 func CheckFollowing(c *gin.Context) {
-	id, ok := c.Get("student_id")
-	if !ok {
-		handler.SendBadRequest(c, "未输入身份", "null")
-	}
-	ID := id.(string)
+	ID := c.MustGet("student_id").(string)
 	following, err := model.GetFollowing(ID)
 	if err != nil {
 		c.JSON(http.StatusNonAuthoritativeInfo, gin.H{"message": "Fail."})
@@ -97,7 +85,7 @@ func CheckFollowing(c *gin.Context) {
 // @Success 200 {object} []model.Organization "{"msg":"查询成功"}"
 // @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
 // @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
-// @Router /api/v1/organization/details [get]
+// @Router /organization/details [get]
 type Detail struct {
 	Name string `json:"name"`
 	ID   string `json:"id"`
@@ -133,9 +121,10 @@ func CheckDetails(c *gin.Context) {
 // @Param token header string true "token"
 // @Success 200 {object} []model.Organization "{"msg":"新建成功"}"
 // @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
-// @Router /api/v1/organization/create [post]
+// @Router /organization/create [post]
 func CreateOne(c *gin.Context) {
 	var org model.Organization
+	org.FounderID = c.MustGet("student_id").(string)
 	if err := c.BindJSON(&org); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Lack Param Or Param Not Satisfiable.",
@@ -193,17 +182,21 @@ func CreateOne(c *gin.Context) {
 // @Success 200 {object} []model.FollowingOrganization "{"msg":"新建成功"}"
 // @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
 // @Failure 400 {object} errno.Errno
-// @Router /api/v1/organization/personal/follow [post]
+// @Router /organization/personal/follow [post]
 func FollowOneOrganization(c *gin.Context) {
 	var following model.FollowingOrganization
+	following.StudentID = c.MustGet("student_id").(string)
 	if err := c.BindJSON(&following); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Lack Param Or Param Not Satisfiable.",
 		})
 	}
-	result := model.DB.Create(&following)
-	if result.Error != nil {
-		c.JSON(http.StatusBadRequest, "Fail.")
+	following.OrganizationID = model.GetOrgID(following.OrganizationName)
+	e := model.Follow(following)
+	if e != nil {
+		handler.SendBadRequest(c, nil, e)
+	} else {
+		handler.SendResponse(c, "关注成功", e)
+
 	}
-	handler.SendResponse(c, "关注成功", nil)
 }
