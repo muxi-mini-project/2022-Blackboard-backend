@@ -417,6 +417,15 @@ var doc = `{
                         "name": "token",
                         "in": "header",
                         "required": true
+                    },
+                    {
+                        "description": "新建组织",
+                        "name": "object",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.Organization"
+                        }
                     }
                 ],
                 "responses": {
@@ -600,7 +609,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.User"
+                            "$ref": "#/definitions/model.Info"
                         }
                     }
                 ],
@@ -663,48 +672,6 @@ var doc = `{
                         "schema": {
                             "$ref": "#/definitions/errno.Errno"
                         }
-                    }
-                }
-            }
-        },
-        "/user/profile": {
-            "post": {
-                "description": "修改用户头像",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "修改头像",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "token",
-                        "name": "token",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "file",
-                        "description": "文件",
-                        "name": "file",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "数据无法更新",
-                        "schema": {
-                            "$ref": "#/definitions/errno.Errno"
-                        }
-                    },
-                    "404": {
-                        "description": "该用户不存在"
                     }
                 }
             }
@@ -892,6 +859,29 @@ var doc = `{
                 }
             }
         },
+        "model.Info": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "studentID": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
         "model.Organization": {
             "type": "object",
             "required": [
@@ -899,7 +889,7 @@ var doc = `{
             ],
             "properties": {
                 "avatar": {
-                    "$ref": "#/definitions/sql.NullString"
+                    "type": "string"
                 },
                 "createdAt": {
                     "type": "string"
@@ -919,6 +909,12 @@ var doc = `{
                 "organization_name": {
                     "type": "string"
                 },
+                "path": {
+                    "type": "string"
+                },
+                "sha": {
+                    "type": "string"
+                },
                 "updatedAt": {
                     "type": "string"
                 }
@@ -932,7 +928,7 @@ var doc = `{
             ],
             "properties": {
                 "avatar": {
-                    "$ref": "#/definitions/sql.NullString"
+                    "type": "string"
                 },
                 "createdAt": {
                     "type": "string"
@@ -949,23 +945,17 @@ var doc = `{
                 "password": {
                     "type": "string"
                 },
+                "path": {
+                    "type": "string"
+                },
+                "sha": {
+                    "type": "string"
+                },
                 "student_id": {
                     "type": "string"
                 },
                 "updatedAt": {
                     "type": "string"
-                }
-            }
-        },
-        "sql.NullString": {
-            "type": "object",
-            "properties": {
-                "string": {
-                    "type": "string"
-                },
-                "valid": {
-                    "description": "Valid is true if String is not NULL",
-                    "type": "boolean"
                 }
             }
         }

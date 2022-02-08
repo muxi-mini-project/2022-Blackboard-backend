@@ -1,7 +1,7 @@
 package model
 
 import (
-	"database/sql"
+
 
 	"github.com/jinzhu/gorm"
 )
@@ -12,14 +12,15 @@ type User struct {
 	StudentID string `json:"student_id" binding:"required" gorm:"student_id"`
 	PassWord  string `json:"password" binding:"required" gorm:"column:password"`
 	NickName  string `json:"nickname" gorm:"nickname"`
-	Avatar    sql.NullString
+	Avatar    string
+	Sha       string
+	Path      string
 }
 
 type Info struct {
 	gorm.Model
 	StudentID string
 	NickName  string `json:"nickname"`
-	Avatar    sql.NullString
 }
 
 //用户收藏
@@ -44,7 +45,9 @@ type Organization struct {
 	FounderID         string `json:"founder_id"  gorm:"founder_id"`
 	OrganizationName  string `json:"organization_name" binding:"required" gorm:"organization_name"`
 	OrganizationIntro string `json:"intro" gorm:"intro"`
-	Avatar            sql.NullString
+	Avatar            string
+	Sha               string
+	Path              string
 }
 
 //组织公告分组
