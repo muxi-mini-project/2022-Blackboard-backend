@@ -11,7 +11,6 @@ import (
 func GetUserInfo(id string) (User, error) {
 	var u User
 	//// SELECT * FROM users ORDER BY id LIMIT 1;
-
 	return u, DB.Where("student_id=?", id).First(&u).Error
 }
 
@@ -22,32 +21,32 @@ func ChangeName(info Info) error {
 }
 
 //修改用户头像
-func (user *User) UpdateUser(id string) error {
-	return DB.Model(User{}).Where("student_id = ?", id).Update("avatar", user.Avatar).Error
+func UpdateUser(id string, url string, sha string, path string) error {
+	return DB.Model(User{}).Where("student_id = ?", id).Updates(User{Avatar: url, Sha: sha, Path: path}).Error
 }
 
 //查询用户收藏
 func GetCollection(id string) ([]Collection, error) {
-	var collects []Collection
+	collects := []Collection{}
 	return collects, DB.Where("student_id = ?", id).Find(&collects).Error
 
 }
 
 //查询已发布的通告
 func GetPublished(id string) ([]Announcement, error) {
-	var announce []Announcement
+	announce := []Announcement{}
 	return announce, DB.Where("publisher_id = ?", id).Find(&announce).Error
 }
 
 //查询创建的组织
 func GetCreated(id string) ([]Organization, error) {
-	var created []Organization
+	created := []Organization{}
 	return created, DB.Where("founder_id = ?", id).Find(&created).Error
 }
 
 //查询关注的组织
 func GetFollowing(id string) ([]FollowingOrganization, error) {
-	var following []FollowingOrganization
+	following := []FollowingOrganization{}
 	return following, DB.Where("student_id = ?", id).Find(&following).Error
 }
 
@@ -63,87 +62,82 @@ func Follow(follow FollowingOrganization) error {
 
 //查询所有组织
 func GetAllOrganizations(interface{}) ([]Organization, error) {
-	var org []Organization
+	org := []Organization{}
 	return org, DB.Find(&org).Error
 }
 
 //查询组织ID
 func GetOrgID(name string) uint {
-	var org Organization
+	org := Organization{}
 	DB.Where("organization_name = ?", name).First(&org)
 	return org.ID
 }
 
 //查询指定组织的全部信息
 func GetDetails(ID string, Name string) (Organization, error) {
-	var org Organization
+	org := Organization{}
 	if Name == "" {
 		return org, DB.Where("id = ?", ID).First(&org).Error
 	} else if ID == "" {
 		return org, DB.Where("organization_name = ?", Name).First(&org).Error
 	}
-	return org, DB.Where("id = ? and organization_name = ?", ID, Name).Error
+	return org, DB.Where("id = ? and organization_name = ?", ID, Name).First(&org).Error
 }
 
 //查看全部通知
 func GetAnnouncements(interface{}) ([]Announcement, error) {
-	var announce []Announcement
+	announce := []Announcement{}
 
 	return announce, DB.Find(&announce).Error
 }
 
 //查询特定通知
 func CheckAnnouce(ID uint) string {
-	var announce Announcement
+	announce := Announcement{}
 	DB.Where("id = ?", ID).First(&announce)
 	return announce.Contents
 }
 
 //创建分组
-func CreateGroup(group Grouping) error {
+func (group *Grouping) CreateGroup() error {
 	result := DB.Create(&group)
 	return result.Error
 }
 
 //获得group id
-func GetGroupID(name string, orgID uint) uint {
-	var group Grouping
-	DB.Where("organization_id = ? and group_name = ?", orgID, name).First(&group)
+func GetGroupID(GroupName string, OrgName string) uint {
+	group := Grouping{}
+	DB.Where("organization_name = ? AND group_name = ?", OrgName, GroupName).First(&group)
 	return group.ID
 }
 
 //更新组织信息
-func (org *Organization) UpdateOrganization(orgID uint) error {
-	return DB.Model(Organization{}).Where("id = ?").Updates(Organization{
-		FounderID:         org.FounderID,
-		OrganizationName:  org.OrganizationName,
-		OrganizationIntro: org.OrganizationIntro,
-		Avatar:            org.Avatar,
-	}).Error
+func (org *Organization) UpdateOrganization() error {
+	return DB.Model(Organization{}).Where("id = ?", org.ID).Updates(org).Error
 }
 
 //验证身份是否为组织创建人
 func JudgeFounder(PublisherId string, OrganizationId uint) bool {
-	var org Organization
+	org := Organization{}
 	DB.First(&org)
 	return PublisherId == org.FounderID
 }
 
 //验证身份是否为通知发布人
 func JudgePublisher(id string, ID string) bool {
-	var announcement Announcement
+	announcement := Announcement{}
 	DB.Where("id = ?", ID).First(&announcement)
 	return id == announcement.PublisherID
 }
 
 //删除通告的分类
 func DeleteAnnoucement(id string) error {
-	var announcement Announcement
+	announcement := Announcement{}
 	return DB.Where("id = ?", id).Delete(&announcement).Error
 }
 
 //取消收藏
 func CancelCollect(id string) error {
-	var collect Collection
+	collect := Collection{}
 	return DB.Where("id = ?", id).Delete(&collect).Error
 }

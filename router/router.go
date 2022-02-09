@@ -28,9 +28,6 @@ func Router(r *gin.Engine) {
 	//user:
 	g1 := r.Group("/api/v1/user").Use(middleware.Auth())
 	{
-		//检验状态
-		g1.GET("", user.Check)
-
 		//查看信息
 		g1.GET("/info", user.UserInfo)
 
@@ -65,6 +62,9 @@ func Router(r *gin.Engine) {
 
 		//创建新的组织
 		g2.POST("/create", organization.CreateOne)
+
+		//上传组织头像
+		g2.POST("/:organization_name/image", organization.UploadImage)
 
 		//关注新的组织
 		g2.POST("/follow", organization.FollowOneOrganization)
