@@ -99,28 +99,21 @@ func CheckAnnouce(ID uint) string {
 }
 
 //创建分组
-func CreateGroup(group Grouping) error {
+func (group *Grouping) CreateGroup() error {
 	result := DB.Create(&group)
 	return result.Error
 }
 
 //获得group id
-func GetGroupID(name string, orgID uint) uint {
+func GetGroupID(GroupName string, OrgName string) uint {
 	group := Grouping{}
-	DB.Where("organization_id = ? and group_name = ?", orgID, name).First(&group)
+	DB.Where("organization_name = ? AND group_name = ?", OrgName, GroupName).First(&group)
 	return group.ID
 }
 
 //更新组织信息
-func UpdateOrganization(org Organization) error {
-	return DB.Model(Organization{}).Where("id = ?", org.ID).Updates(Organization{
-		FounderID:         org.FounderID,
-		OrganizationName:  org.OrganizationName,
-		OrganizationIntro: org.OrganizationIntro,
-		Avatar:            org.Avatar,
-		Sha:               org.Sha,
-		Path:              org.Path,
-	}).Error
+func (org *Organization) UpdateOrganization() error {
+	return DB.Model(Organization{}).Where("id = ?", org.ID).Updates(org).Error
 }
 
 //验证身份是否为组织创建人

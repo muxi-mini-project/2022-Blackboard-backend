@@ -13,15 +13,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// @Summary 查看组织
+type Detail struct {
+	Name string `json:"name" binding:"required"`
+	ID   string `json:"id"`
+}
+
+// @Summary		查看组织
 // @Tags organization
 // @Description 查看目前已存在的所有组织
 // @Accept application/json
 // @Produce application/json
-// @Param token header string true "token"
+// @Param Authorization header string true "token"
 // @Success 200 {object} []model.Organization "{"msg":"获取成功"}"
 // @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
-// @Router /organization/personal/created [get]
+// @Router /organization [get]
 func CheckAll(c *gin.Context) {
 	org, err := model.GetAllOrganizations(" ")
 	if err != nil {
@@ -31,12 +36,12 @@ func CheckAll(c *gin.Context) {
 	handler.SendResponse(c, "获取成功", org)
 }
 
-// @Summary  查看创建
+// @Summary		查看创建
 // @Tags organization
 // @Description 查看用户创建的组织
 // @Accept application/json
 // @Produce application/json
-// @Param token header string true "token"
+// @Param Authorization header string true "token"
 // @Success 200 {object} []model.Organization "{"msg":"查询成功"}"
 // @Failure 400 {object} errno.Errno
 // @Failure 500 {object} errno.Errno
@@ -51,12 +56,12 @@ func CheckCreated(c *gin.Context) {
 	handler.SendResponse(c, "获取成功", created)
 }
 
-// @Summary  查看关注
+// @Summary		查看关注
 // @Tags organization
 // @Description 查看用户关注的组织
 // @Accept application/json
 // @Produce application/json
-// @Param token header string true "token"
+// @Param Authorization header string true "token"
 // @Success 200 {object} []model.FollowingOrganization "{"msg":"获取成功"}"
 // @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
 // @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
@@ -72,20 +77,16 @@ func CheckFollowing(c *gin.Context) {
 
 }
 
-// @Summary  查看指定组织
+// @Summary	查看指定组织
 // @Tags organization
 // @Description 查看某个组织的具体信息
 // @Accept application/json
 // @Produce application/json
-// @Param token header string true "token"
+// @Param Authorization header string true "token"
 // @Success 200 {object} []model.Organization "{"msg":"查询成功"}"
 // @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
 // @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
 // @Router /organization/details [get]
-type Detail struct {
-	Name string `json:"name" binding:"required"`
-	ID   string `json:"id"`
-}
 
 func CheckDetails(c *gin.Context) {
 	var details Detail
@@ -109,12 +110,12 @@ func CheckDetails(c *gin.Context) {
 	handler.SendResponse(c, "获取成功", org)
 }
 
-// @Summary  新建组织
+// @Summary	新建组织
 // @Tags organization
 // @Description 用户新建组织以便发布信息
 // @Accept application/json
 // @Produce application/json
-// @Param token header string true "token"
+// @Param Authorization header string true "token"
 // @Param object body model.Organization true "新建组织"
 // @Success 200 {object} []model.Organization "{"msg":"新建成功"}"
 // @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
@@ -131,31 +132,23 @@ func CreateOne(c *gin.Context) {
 	result := model.DB.Create(&org)
 	if result.Error != nil {
 		c.JSON(http.StatusBadRequest, "Fail.")
+		return
 	}
-	handler.SendResponse(c, "创建成功", nil)
+	handler.SendResponse(c, "创建成功", org)
 }
 
-// @Summary 修改头像
-// @Tags user
-// @Description 修改组织头像
+// @Summary	修改logo
+// @Tags organization
+// @Description 修改组织logo
 // @Accept application/json
 // @Produce application/json
-// @Param token header string true "token"
+// @Param Authorization header string true "token"
 // @Param file formData file true "文件"
-// @Param organization_name path string true
+// @Param organization_name path string true "组织名字"
 // @Success 200 {object} model.User "{"mgs":"success"}"
-// @Failure 200 {object} errno.Errno "绑定发生错误"
 // @Failure 200 {object} errno.Errno "文件上传错误"
-// @Failure 200 {object} errno.Errno "无法创建文件夹"
-// @Failure 200 {object} errno.Errno "无法保存文件"
-// @Failure 200 {object} errno.Errno "数据无法更新"
-// @Failure 404 "该用户不存在"
-// @Router /:organization_name/image [post]
-type Avatar struct {
-	Url  string
-	Sha  string
-	Path string
-}
+// @Failure 400 {object} errno.Errno "上传失败,请检查token与其他配置参数是否正确"
+// @Router /organization/:organization_name/image [post]
 
 func UploadImage(c *gin.Context) {
 	ID := c.MustGet("student_id").(string)
@@ -206,7 +199,7 @@ func UploadImage(c *gin.Context) {
 
 	os.Remove(filename)
 
-	e := model.UpdateOrganization(organization)
+	e := organization.UpdateOrganization()
 	if organization.Avatar == "" || e != nil {
 		handler.SendBadRequest(c, "上传失败,请检查token与其他配置参数是否正确", e)
 		return
@@ -220,16 +213,16 @@ func UploadImage(c *gin.Context) {
 	})
 }
 
-// @Summary  关注组织
+// @Summary		关注组织
 // @Tags organization
 // @Description 用户关注一个已经被创建的组织
 // @Accept application/json
 // @Produce application/json
-// @Param token header string true "token"
+// @Param Authorization header string true "token"
 // @Success 200 {object} []model.FollowingOrganization "{"msg":"新建成功"}"
 // @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
 // @Failure 400 {object} errno.Errno
-// @Router /organization/personal/follow [post]
+// @Router /organization/follow [post]
 func FollowOneOrganization(c *gin.Context) {
 	var following model.FollowingOrganization
 	following.StudentID = c.MustGet("student_id").(string)

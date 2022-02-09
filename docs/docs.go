@@ -44,7 +44,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "token",
-                        "name": "token",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     }
@@ -91,7 +91,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "token",
-                        "name": "token",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     }
@@ -127,7 +127,7 @@ var doc = `{
                 }
             }
         },
-        "/announcement/collect/cancel": {
+        "/announcement/collect/cancel/:collect_id": {
             "delete": {
                 "consumes": [
                     "application/json"
@@ -143,7 +143,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "token",
-                        "name": "token",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -151,7 +151,7 @@ var doc = `{
                         "type": "string",
                         "description": "collect_id",
                         "name": "collect_id",
-                        "in": "query",
+                        "in": "path",
                         "required": true
                     }
                 ],
@@ -171,62 +171,7 @@ var doc = `{
                 }
             }
         },
-        "/announcement/create_group": {
-            "post": {
-                "description": "仅组织创建者可新建通告分组",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "announcement"
-                ],
-                "summary": "创建分组",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "token",
-                        "name": "token",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "新建分组",
-                        "name": "group",
-                        "in": "body",
-                        "schema": {
-                            "$ref": "#/definitions/model.Grouping"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{\"msg\":\"创建成功\"}",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.Grouping"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/errno.Errno"
-                        }
-                    },
-                    "412": {
-                        "description": "{\"msg\":\"身份认证失败\"}",
-                        "schema": {
-                            "$ref": "#/definitions/errno.Errno"
-                        }
-                    }
-                }
-            }
-        },
-        "/announcement/delete": {
+        "/announcement/delete/:announcement_id": {
             "delete": {
                 "description": "仅组织创建者可删除通告",
                 "consumes": [
@@ -243,7 +188,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "token",
-                        "name": "token",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -286,6 +231,61 @@ var doc = `{
                 }
             }
         },
+        "/announcement/group": {
+            "post": {
+                "description": "仅组织创建者可新建通告分组",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "announcement"
+                ],
+                "summary": "创建分组",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "新建分组",
+                        "name": "group",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/model.Grouping"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"msg\":\"创建成功\"}",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Grouping"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errno.Errno"
+                        }
+                    },
+                    "412": {
+                        "description": "{\"msg\":\"身份认证失败\"}",
+                        "schema": {
+                            "$ref": "#/definitions/errno.Errno"
+                        }
+                    }
+                }
+            }
+        },
         "/announcement/publish": {
             "post": {
                 "description": "仅组织创建者可发布新的通知",
@@ -303,7 +303,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "token",
-                        "name": "token",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -397,6 +397,47 @@ var doc = `{
                 }
             }
         },
+        "/organization": {
+            "get": {
+                "description": "查看目前已存在的所有组织",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "organization"
+                ],
+                "summary": "查看组织",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"msg\":\"获取成功\"}",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Organization"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "{\"error_code\":\"30001\", \"message\":\"Fail.\"} 失败",
+                        "schema": {
+                            "$ref": "#/definitions/errno.Errno"
+                        }
+                    }
+                }
+            }
+        },
         "/organization/create": {
             "post": {
                 "description": "用户新建组织以便发布信息",
@@ -414,7 +455,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "token",
-                        "name": "token",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     },
@@ -447,6 +488,47 @@ var doc = `{
                 }
             }
         },
+        "/organization/follow": {
+            "post": {
+                "description": "用户关注一个已经被创建的组织",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "organization"
+                ],
+                "summary": "关注组织",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"msg\":\"新建成功\"}",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.FollowingOrganization"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errno.Errno"
+                        }
+                    }
+                }
+            }
+        },
         "/organization/personal/created": {
             "get": {
                 "description": "查看用户创建的组织",
@@ -464,7 +546,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "token",
-                        "name": "token",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     }
@@ -494,47 +576,6 @@ var doc = `{
                 }
             }
         },
-        "/organization/personal/follow": {
-            "post": {
-                "description": "用户关注一个已经被创建的组织",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "organization"
-                ],
-                "summary": "关注组织",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "token",
-                        "name": "token",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{\"msg\":\"新建成功\"}",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.FollowingOrganization"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/errno.Errno"
-                        }
-                    }
-                }
-            }
-        },
         "/organization/personal/following": {
             "get": {
                 "description": "查看用户关注的组织",
@@ -552,7 +593,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "token",
-                        "name": "token",
+                        "name": "Authorization",
                         "in": "header",
                         "required": true
                     }
@@ -575,141 +616,6 @@ var doc = `{
                     },
                     "500": {
                         "description": "{\"error_code\":\"30001\", \"message\":\"Fail.\"} 失败",
-                        "schema": {
-                            "$ref": "#/definitions/errno.Errno"
-                        }
-                    }
-                }
-            }
-        },
-        "/user/changename": {
-            "put": {
-                "description": "接收新的User结构体来修改用户名",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "修改用户名",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "token",
-                        "name": "token",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "需要修改的用户信息",
-                        "name": "User",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.Info"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{\"msg\":\"修改成功\"}",
-                        "schema": {
-                            "$ref": "#/definitions/Response"
-                        }
-                    },
-                    "400": {
-                        "description": "{\"error_code\":\"20001\", \"message\":\"Fail.\"} or {\"error_code\":\"00002\", \"message\":\"Lack Param Or Param Not Satisfiable.\"}",
-                        "schema": {
-                            "$ref": "#/definitions/errno.Errno"
-                        }
-                    },
-                    "500": {
-                        "description": "{\"error_code\":\"30001\", \"message\":\"Fail.\"} 失败",
-                        "schema": {
-                            "$ref": "#/definitions/errno.Errno"
-                        }
-                    }
-                }
-            }
-        },
-        "/user/colletion": {
-            "get": {
-                "description": "查看用户收藏的通告",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "查看用户收藏",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "token",
-                        "name": "token",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{\"msg\":\"获取成功\"}",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.Collection"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "{\"error_code\":\"20001\",\"message\":\"Fail.\"}or {\"error_code\":\"00002\",\"message\":\"Lack Param or Param Not Satisfiable.\"}",
-                        "schema": {
-                            "$ref": "#/definitions/errno.Errno"
-                        }
-                    }
-                }
-            }
-        },
-        "/user/publisher": {
-            "get": {
-                "description": "查看用户发布过的通告",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "通告",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "token",
-                        "name": "token",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{\"msg\":\"获取成功\"}",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.Announcement"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "{\"error_code\":\"20001\",\"message\":\"Fail.\"}or {\"error_code\":\"00002\",\"message\":\"Lack Param or Param Not Satisfiable.\"}",
                         "schema": {
                             "$ref": "#/definitions/errno.Errno"
                         }
@@ -859,29 +765,6 @@ var doc = `{
                 }
             }
         },
-        "model.Info": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "nickname": {
-                    "type": "string"
-                },
-                "studentID": {
-                    "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
         "model.Organization": {
             "type": "object",
             "required": [
@@ -974,7 +857,7 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "1.0.0",
-	Host:        "127.0.0.1",
+	Host:        "127.0.0.1:8181",
 	BasePath:    "/api/v1",
 	Schemes:     []string{"http"},
 	Title:       "BlackBoard API",

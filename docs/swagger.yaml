@@ -92,21 +92,6 @@ definitions:
     required:
     - organization_name
     type: object
-  model.Info:
-    properties:
-      createdAt:
-        type: string
-      deletedAt:
-        type: string
-      id:
-        type: integer
-      nickname:
-        type: string
-      studentID:
-        type: string
-      updatedAt:
-        type: string
-    type: object
   model.Organization:
     properties:
       avatar:
@@ -158,7 +143,7 @@ definitions:
     - password
     - student_id
     type: object
-host: 127.0.0.1
+host: 127.0.0.1:8181
 info:
   contact:
     email: 1903180340@qq.com
@@ -176,7 +161,7 @@ paths:
       parameters:
       - description: token
         in: header
-        name: token
+        name: Authorization
         required: true
         type: string
       produces:
@@ -207,7 +192,7 @@ paths:
       parameters:
       - description: token
         in: header
-        name: token
+        name: Authorization
         required: true
         type: string
       produces:
@@ -234,18 +219,18 @@ paths:
       summary: 收藏通知
       tags:
       - announcement
-  /announcement/collect/cancel:
+  /announcement/collect/cancel/:collect_id:
     delete:
       consumes:
       - application/json
       parameters:
       - description: token
         in: header
-        name: token
+        name: Authorization
         required: true
         type: string
       - description: collect_id
-        in: query
+        in: path
         name: collect_id
         required: true
         type: string
@@ -263,43 +248,7 @@ paths:
       summary: 取消收藏
       tags:
       - announcement
-  /announcement/create_group:
-    post:
-      consumes:
-      - application/json
-      description: 仅组织创建者可新建通告分组
-      parameters:
-      - description: token
-        in: header
-        name: token
-        required: true
-        type: string
-      - description: 新建分组
-        in: body
-        name: group
-        schema:
-          $ref: '#/definitions/model.Grouping'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: '{"msg":"创建成功"}'
-          schema:
-            items:
-              $ref: '#/definitions/model.Grouping'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/errno.Errno'
-        "412":
-          description: '{"msg":"身份认证失败"}'
-          schema:
-            $ref: '#/definitions/errno.Errno'
-      summary: 创建分组
-      tags:
-      - announcement
-  /announcement/delete:
+  /announcement/delete/:announcement_id:
     delete:
       consumes:
       - application/json
@@ -307,7 +256,7 @@ paths:
       parameters:
       - description: token
         in: header
-        name: token
+        name: Authorization
         required: true
         type: string
       - description: 通知ID
@@ -339,6 +288,42 @@ paths:
       summary: 删除通知
       tags:
       - announcement
+  /announcement/group:
+    post:
+      consumes:
+      - application/json
+      description: 仅组织创建者可新建通告分组
+      parameters:
+      - description: token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 新建分组
+        in: body
+        name: group
+        schema:
+          $ref: '#/definitions/model.Grouping'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"创建成功"}'
+          schema:
+            items:
+              $ref: '#/definitions/model.Grouping'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "412":
+          description: '{"msg":"身份认证失败"}'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 创建分组
+      tags:
+      - announcement
   /announcement/publish:
     post:
       consumes:
@@ -347,7 +332,7 @@ paths:
       parameters:
       - description: token
         in: header
-        name: token
+        name: Authorization
         required: true
         type: string
       - description: 组织创建者发布的新通知
@@ -414,6 +399,33 @@ paths:
       summary: 登录
       tags:
       - user
+  /organization:
+    get:
+      consumes:
+      - application/json
+      description: 查看目前已存在的所有组织
+      parameters:
+      - description: token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"获取成功"}'
+          schema:
+            items:
+              $ref: '#/definitions/model.Organization'
+            type: array
+        "500":
+          description: '{"error_code":"30001", "message":"Fail."} 失败'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 查看组织
+      tags:
+      - organization
   /organization/create:
     post:
       consumes:
@@ -422,7 +434,7 @@ paths:
       parameters:
       - description: token
         in: header
-        name: token
+        name: Authorization
         required: true
         type: string
       - description: 新建组织
@@ -448,6 +460,33 @@ paths:
       summary: 新建组织
       tags:
       - organization
+  /organization/follow:
+    post:
+      consumes:
+      - application/json
+      description: 用户关注一个已经被创建的组织
+      parameters:
+      - description: token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"新建成功"}'
+          schema:
+            items:
+              $ref: '#/definitions/model.FollowingOrganization'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 关注组织
+      tags:
+      - organization
   /organization/personal/created:
     get:
       consumes:
@@ -456,7 +495,7 @@ paths:
       parameters:
       - description: token
         in: header
-        name: token
+        name: Authorization
         required: true
         type: string
       produces:
@@ -479,33 +518,6 @@ paths:
       summary: 查看创建
       tags:
       - organization
-  /organization/personal/follow:
-    post:
-      consumes:
-      - application/json
-      description: 用户关注一个已经被创建的组织
-      parameters:
-      - description: token
-        in: header
-        name: token
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: '{"msg":"新建成功"}'
-          schema:
-            items:
-              $ref: '#/definitions/model.FollowingOrganization'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/errno.Errno'
-      summary: 关注组织
-      tags:
-      - organization
   /organization/personal/following:
     get:
       consumes:
@@ -514,7 +526,7 @@ paths:
       parameters:
       - description: token
         in: header
-        name: token
+        name: Authorization
         required: true
         type: string
       produces:
@@ -538,98 +550,6 @@ paths:
       summary: 查看关注
       tags:
       - organization
-  /user/changename:
-    put:
-      consumes:
-      - application/json
-      description: 接收新的User结构体来修改用户名
-      parameters:
-      - description: token
-        in: header
-        name: token
-        required: true
-        type: string
-      - description: 需要修改的用户信息
-        in: body
-        name: User
-        required: true
-        schema:
-          $ref: '#/definitions/model.Info'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: '{"msg":"修改成功"}'
-          schema:
-            $ref: '#/definitions/Response'
-        "400":
-          description: '{"error_code":"20001", "message":"Fail."} or {"error_code":"00002",
-            "message":"Lack Param Or Param Not Satisfiable."}'
-          schema:
-            $ref: '#/definitions/errno.Errno'
-        "500":
-          description: '{"error_code":"30001", "message":"Fail."} 失败'
-          schema:
-            $ref: '#/definitions/errno.Errno'
-      summary: 修改用户名
-      tags:
-      - user
-  /user/colletion:
-    get:
-      consumes:
-      - application/json
-      description: 查看用户收藏的通告
-      parameters:
-      - description: token
-        in: header
-        name: token
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: '{"msg":"获取成功"}'
-          schema:
-            items:
-              $ref: '#/definitions/model.Collection'
-            type: array
-        "400":
-          description: '{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack
-            Param or Param Not Satisfiable."}'
-          schema:
-            $ref: '#/definitions/errno.Errno'
-      summary: 查看用户收藏
-      tags:
-      - user
-  /user/publisher:
-    get:
-      consumes:
-      - application/json
-      description: 查看用户发布过的通告
-      parameters:
-      - description: token
-        in: header
-        name: token
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: '{"msg":"获取成功"}'
-          schema:
-            items:
-              $ref: '#/definitions/model.Announcement'
-            type: array
-        "400":
-          description: '{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack
-            Param or Param Not Satisfiable."}'
-          schema:
-            $ref: '#/definitions/errno.Errno'
-      summary: 通告
-      tags:
-      - user
 schemes:
 - http
 swagger: "2.0"

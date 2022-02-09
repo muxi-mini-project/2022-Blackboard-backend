@@ -13,7 +13,7 @@ import (
 // @Description 用户查看已经发布过的通知
 // @Accept application/json
 // @Produce application/json
-// @Param token header string true "token"
+// @Param Authorization header string true "token"
 // @Success 200 {object} []model.Announcement "{"msg":"查看"}"
 // @Failure 203 {object} errno.Errno "{"error_code":"20001","message":"Fail."}"
 // @Failure 401 {object} errno.Errno "{"error_code":"10001","message":"Token Invalid."} 身份验证失败 重新登录"
@@ -32,7 +32,7 @@ func CheckAllPubilshed(c *gin.Context) {
 // @Description 仅组织创建者可发布新的通知
 // @Accept application/json
 // @Produce application/json
-// @Param token header string true "token"
+// @Param Authorization header string true "token"
 // @Param announcement body model.Announcement true "组织创建者发布的新通知"
 // @Success 200 {object} []model.Announcement "{"msg":"创建成功"}"
 // @Failure 400 {object} errno.Errno
@@ -49,12 +49,13 @@ func PublishNews(c *gin.Context) {
 	}
 	announcement.PublisherID = ID
 	announcement.OrganizationID = model.GetOrgID(announcement.OrganizationName)
-	announcement.GroupID = model.GetGroupID(announcement.GroupName, announcement.GroupID)
+	announcement.GroupID = model.GetGroupID(announcement.GroupName, announcement.OrganizationName)
 	verify := model.JudgeFounder(ID, announcement.OrganizationID)
 	if !verify {
 		c.JSON(412, gin.H{
 			"message": "身份认证错误",
 		})
+		return
 
 	} else {
 		result := model.DB.Create(&announcement)
@@ -71,12 +72,12 @@ func PublishNews(c *gin.Context) {
 //@Description 仅组织创建者可新建通告分组
 // @Accept application/json
 // @Produce application/json
-// @Param token header string true "token"
+// @Param Authorization header string true "token"
 // @Param group body model.Grouping ture "新建分组"
 // @Success 200 {object} []model.Grouping "{"msg":"创建成功"}"
 // @Failure 400 {object} errno.Errno
 // @Failure 412 {object} errno.Errno "{"msg":"身份认证失败"}"
-// @Router /announcement/create_group [post]
+// @Router /announcement/group [post]
 func CreateGroup(c *gin.Context) {
 	ID := c.MustGet("student_id").(string)
 	var group model.Grouping
@@ -93,9 +94,10 @@ func CreateGroup(c *gin.Context) {
 		return
 	}
 	group.OrganizationID = model.GetOrgID(group.OrganizationName)
-	e := model.CreateGroup(group)
-	if e != nil {
-		handler.SendError(c, errno.ErrDatabase, nil)
+	result := model.DB.Create(&group)
+	if result.Error != nil {
+		handler.SendBadRequest(c, "Fail", nil)
+		return
 	}
 	handler.SendResponse(c, "创建成功", group)
 }
@@ -105,14 +107,14 @@ func CreateGroup(c *gin.Context) {
 // @Description 仅组织创建者可删除通告
 // @Accept application/json
 // @Produce application/json
-// @Param token header string true "token"
+// @Param Authorization header string true "token"
 // @Param announcement_id path string true "通知ID"
 // @Success 200  "{"msg":"删除成功"}"
 // @Failure 400 {object} errno.Errno
 // @Failure 500 {object} errno.Errno
 // @Failure 203 {object} errno.Errno "{"error_code":"20001","message":"Fail."}"
 // @Failure 412 {object} errno.Errno "{"msg":"身份认证失败"}"
-// @Router /announcement/delete [delete]
+// @Router /announcement/delete/:announcement_id [delete]
 func DeletePublished(c *gin.Context) {
 	ID := c.MustGet("student_id").(string)
 	AnnoucementID := c.Param("announcement_id")
@@ -139,7 +141,7 @@ func DeletePublished(c *gin.Context) {
 // @Description 用户将通知加入自己的收藏
 // @Accept application/json
 // @Produce application/json
-// @Param token header string true "token"
+// @Param Authorization header string true "token"
 // @Success 200 {object} []model.Collection "{"msg":"收藏成功"}"
 // @Failure 203 {object} errno.Errno  "{"error_code":"20001","message":"Fail."}"
 // @Failure 400 {object} errno.Errno
@@ -159,7 +161,7 @@ func Collect(c *gin.Context) {
 		c.JSON(400, gin.H{"message": "Fail"})
 		return
 	} else {
-		handler.SendResponse(c, "关注成功", nil)
+		handler.SendResponse(c, "关注成功", collect)
 	}
 
 }
@@ -169,12 +171,12 @@ func Collect(c *gin.Context) {
 // @Descrip 用户删除之前收藏的通知
 // @Accept application/json
 // @Produce application/json
-// @Param token header string true "token"
-// @Param collect_id query string true "collect_id"
+// @Param Authorization header string true "token"
+// @Param collect_id path string true "collect_id"
 // @Success 200 {object} []model.Collection "{"msg":"取消成功"}"
 // @Failure 200 {object} errno.Errno
 // @Failure 500 {object} errno.Errno
-// @Router /announcement/collect/cancel [delete]
+// @Router /announcement/collect/cancel/:collect_id [delete]
 func CancelCollect(c *gin.Context) {
 	CollectID := c.Param("collect_id")
 	err := model.CancelCollect(CollectID)
@@ -182,5 +184,5 @@ func CancelCollect(c *gin.Context) {
 		handler.SendError(c, errno.ErrDatabase, nil)
 		return
 	}
-	handler.SendResponse(c, "取消成功", nil)
+	handler.SendResponse(c, "取消成功", err)
 }
