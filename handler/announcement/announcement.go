@@ -14,9 +14,8 @@ import (
 // @Accept application/json
 // @Produce application/json
 // @Param Authorization header string true "token"
-// @Success 200 {object} []model.Announcement "{"msg":"查看"}"
-// @Failure 203 {object} errno.Errno "{"error_code":"20001","message":"Fail."}"
-// @Failure 401 {object} errno.Errno "{"error_code":"10001","message":"Token Invalid."} 身份验证失败 重新登录"
+// @Success 200 {object} []model.Announcement "{"msg":"查看成功"}"
+// @Failure 500 {object} errno.Errno "{"msg":"Error occurred while getting url queries."}"
 // @Router /announcement [get]
 func CheckAllPubilshed(c *gin.Context) {
 	announcement, err := model.GetAnnouncements(" ")
@@ -35,9 +34,9 @@ func CheckAllPubilshed(c *gin.Context) {
 // @Param Authorization header string true "token"
 // @Param announcement body model.Announcement true "组织创建者发布的新通知"
 // @Success 200 {object} []model.Announcement "{"msg":"创建成功"}"
-// @Failure 400 {object} errno.Errno
-// @Failure 500 {object} errno.Errno
-// @Failure 412 {object} errno.Errno "{"msg":"身份认证失败"}"
+// @Failure 400 {object} errno.Errno "{Code: 10002, Message: "Error occurred while binding the request body to the struct."}"
+// @Failure 500 {object} errno.Errno "{Code: 20002, Message: "Database error."}"
+// @Failure 412 {object} errno.Errno "{"msg":"身份认证错误"}"
 // @Router /announcement/publish [post]
 func PublishNews(c *gin.Context) {
 	ID := c.MustGet("student_id").(string)
@@ -67,9 +66,9 @@ func PublishNews(c *gin.Context) {
 	handler.SendResponse(c, "创建成功", announcement)
 }
 
-//@Summary 创建分组
-//@Tags announcement
-//@Description 仅组织创建者可新建通告分组
+// @Summary 创建分组
+// @Tags announcement
+// @Description 仅组织创建者可新建通告分组
 // @Accept application/json
 // @Produce application/json
 // @Param Authorization header string true "token"
@@ -112,7 +111,6 @@ func CreateGroup(c *gin.Context) {
 // @Success 200  "{"msg":"删除成功"}"
 // @Failure 400 {object} errno.Errno
 // @Failure 500 {object} errno.Errno
-// @Failure 203 {object} errno.Errno "{"error_code":"20001","message":"Fail."}"
 // @Failure 412 {object} errno.Errno "{"msg":"身份认证失败"}"
 // @Router /announcement/delete/:announcement_id [delete]
 func DeletePublished(c *gin.Context) {
@@ -143,9 +141,8 @@ func DeletePublished(c *gin.Context) {
 // @Produce application/json
 // @Param Authorization header string true "token"
 // @Success 200 {object} []model.Collection "{"msg":"收藏成功"}"
-// @Failure 203 {object} errno.Errno  "{"error_code":"20001","message":"Fail."}"
-// @Failure 400 {object} errno.Errno
-// @Failure 412 {object} errno.Errno  "{"msg":"身份认证失败"}"
+// @Failure 400 {object} errno.Errno	"{Code: 10002, Message: "Error occurred while binding the request body to the struct."}"
+// @Failure 400 {object} errno.Errno	"{"msg":"Fail"}"
 // @Router /announcement/collect [post]
 func Collect(c *gin.Context) {
 	ID := c.MustGet("student_id").(string)
@@ -174,8 +171,7 @@ func Collect(c *gin.Context) {
 // @Param Authorization header string true "token"
 // @Param collect_id path string true "collect_id"
 // @Success 200 {object} []model.Collection "{"msg":"取消成功"}"
-// @Failure 200 {object} errno.Errno
-// @Failure 500 {object} errno.Errno
+// @Failure 500 {object} errno.Errno "{Code: 20002, Message: "Database error."}"
 // @Router /announcement/collect/cancel/:collect_id [delete]
 func CancelCollect(c *gin.Context) {
 	CollectID := c.Param("collect_id")

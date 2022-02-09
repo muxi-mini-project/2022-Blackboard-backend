@@ -43,6 +43,7 @@ func CheckAll(c *gin.Context) {
 // @Produce application/json
 // @Param Authorization header string true "token"
 // @Success 200 {object} []model.Organization "{"msg":"查询成功"}"
+// @Failue 203 {object} errno.Errno	"{"msg":"Fail"}"
 // @Failure 400 {object} errno.Errno
 // @Failure 500 {object} errno.Errno
 // @Router /organization/personal/created [get]
@@ -63,8 +64,7 @@ func CheckCreated(c *gin.Context) {
 // @Produce application/json
 // @Param Authorization header string true "token"
 // @Success 200 {object} []model.FollowingOrganization "{"msg":"获取成功"}"
-// @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
-// @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
+// @Failue 203 {object} errno.Errno	"{"msg":"Fail"}"
 // @Router /organization/personal/following [get]
 func CheckFollowing(c *gin.Context) {
 	ID := c.MustGet("student_id").(string)
@@ -84,16 +84,13 @@ func CheckFollowing(c *gin.Context) {
 // @Produce application/json
 // @Param Authorization header string true "token"
 // @Success 200 {object} []model.Organization "{"msg":"查询成功"}"
+// @Failue 203 {object} errno.Errno	"{"msg":"查无此组"}"
 // @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
-// @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
 // @Router /organization/details [get]
 
 func CheckDetails(c *gin.Context) {
 	var details Detail
 	if e := c.ShouldBindJSON(&details); e != nil {
-		c.HTML(http.StatusOK, "error.tmpl", gin.H{
-			"error": e,
-		})
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Lack Param Or Param Not Satisfiable.",
 		})
@@ -101,9 +98,6 @@ func CheckDetails(c *gin.Context) {
 
 	org, er := model.GetDetails(details.ID, details.Name)
 	if er != nil {
-		c.HTML(http.StatusOK, "error.tmpl", gin.H{
-			"error": er,
-		})
 		c.JSON(http.StatusNonAuthoritativeInfo, gin.H{"message": "查无此组"})
 		return
 	}
@@ -118,7 +112,8 @@ func CheckDetails(c *gin.Context) {
 // @Param Authorization header string true "token"
 // @Param object body model.Organization true "新建组织"
 // @Success 200 {object} []model.Organization "{"msg":"新建成功"}"
-// @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
+// @Failure 400 {object} errno.Errno "{"msg":"Lack Param Or Param Not Satisfiable."}"
+// @Failure 400 {object} errno.Errno "{"msg":"Fail"}"
 // @Router /organization/create [post]
 func CreateOne(c *gin.Context) {
 	var org model.Organization
@@ -146,7 +141,9 @@ func CreateOne(c *gin.Context) {
 // @Param file formData file true "文件"
 // @Param organization_name path string true "组织名字"
 // @Success 200 {object} model.User "{"mgs":"success"}"
-// @Failure 200 {object} errno.Errno "文件上传错误"
+// @Failure 400 {object} errno.Errno "{"msg":"Lack Param Or Param Not Satisfiable."}"
+// @Failure 400 {object} errno.Errno "{"msg":"不具有资格"}"
+// @Failure 400 {object} errno.Errno "{"msg":"上传失败"}"
 // @Failure 400 {object} errno.Errno "上传失败,请检查token与其他配置参数是否正确"
 // @Router /organization/:organization_name/image [post]
 
@@ -220,8 +217,8 @@ func UploadImage(c *gin.Context) {
 // @Produce application/json
 // @Param Authorization header string true "token"
 // @Success 200 {object} []model.FollowingOrganization "{"msg":"新建成功"}"
-// @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
-// @Failure 400 {object} errno.Errno
+// @Failure 400 {object} errno.Errno "{"message": "Lack Param Or Param Not Satisfiable."}"
+// @Failure 400 {object} errno.Errno "{"message":"关注成功"}"
 // @Router /organization/follow [post]
 func FollowOneOrganization(c *gin.Context) {
 	var following model.FollowingOrganization
