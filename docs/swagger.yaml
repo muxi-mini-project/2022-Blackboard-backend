@@ -158,7 +158,7 @@ definitions:
     - password
     - student_id
     type: object
-host: 127.0.0.1:8181
+host: 122.112.236.36:8080
 info:
   contact:
     email: 1903180340@qq.com
@@ -428,6 +428,41 @@ paths:
       summary: 查看组织
       tags:
       - organization
+  /organization/:organization_name/image:
+    post:
+      consumes:
+      - application/json
+      description: 修改组织logo
+      parameters:
+      - description: token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: 组织名字
+        in: path
+        name: organization_name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"mgs":"success"}'
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: 上传失败,请检查token与其他配置参数是否正确
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 修改logo
+      tags:
+      - organization
   /organization/create:
     post:
       consumes:
@@ -459,6 +494,34 @@ paths:
           schema:
             $ref: '#/definitions/errno.Errno'
       summary: 新建组织
+      tags:
+      - organization
+  /organization/details:
+    get:
+      consumes:
+      - application/json
+      description: 查看某个组织的具体信息
+      parameters:
+      - description: token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"查询成功"}'
+          schema:
+            items:
+              $ref: '#/definitions/model.Organization'
+            type: array
+        "400":
+          description: '{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack
+            Param or Param Not Satisfiable."}'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 查看指定组织
       tags:
       - organization
   /organization/follow:
@@ -606,6 +669,36 @@ paths:
       summary: 查看用户收藏
       tags:
       - user
+  /user/info:
+    get:
+      consumes:
+      - application/json
+      description: 获取用户信息
+      parameters:
+      - description: token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"获取成功"}'
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: '{"error_code":"20001", "message":"Fail."} or {"error_code":"00002",
+            "message":"Lack Param Or Param Not Satisfiable."}'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "500":
+          description: '{"error_code":"30001", "message":"Fail."} 失败'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 用户信息
+      tags:
+      - user
   /user/published:
     get:
       consumes:
@@ -632,6 +725,36 @@ paths:
           schema:
             $ref: '#/definitions/errno.Errno'
       summary: 通告
+      tags:
+      - user
+  /user/update:
+    post:
+      consumes:
+      - application/json
+      description: 修改用户头像
+      parameters:
+      - description: token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ' {"mgs":"success"}'
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: 上传失败,请检查token与其他配置参数是否正确
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 修改头像
       tags:
       - user
 schemes:

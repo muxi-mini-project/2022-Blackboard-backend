@@ -31,7 +31,6 @@ type Avatar struct {
 // @Failure 400 {object} errno.Errno "{"error_code":"20001", "message":"Fail."} or {"error_code":"00002", "message":"Lack Param Or Param Not Satisfiable."}"
 // @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
 // @Router /user/info [get]
-
 func UserInfo(c *gin.Context) {
 	ID := c.MustGet("student_id").(string)
 
@@ -128,7 +127,6 @@ func UserPublished(c *gin.Context) {
 // @Failure 400 {object} errno.Errno "上传失败"
 // @Failure 400 {object} errno.Errno "上传失败,请检查token与其他配置参数是否正确"
 // @Router /user/update [post]
-
 func UpdateUserProfile(c *gin.Context) {
 	ID := c.MustGet("student_id").(string)
 	file, err := c.FormFile("file")
