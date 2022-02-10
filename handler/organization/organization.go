@@ -87,7 +87,6 @@ func CheckFollowing(c *gin.Context) {
 // @Failue 203 {object} errno.Errno	"{"msg":"查无此组"}"
 // @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
 // @Router /organization/details [get]
-
 func CheckDetails(c *gin.Context) {
 	var details Detail
 	if e := c.ShouldBindJSON(&details); e != nil {
@@ -146,7 +145,6 @@ func CreateOne(c *gin.Context) {
 // @Failure 400 {object} errno.Errno "{"msg":"上传失败"}"
 // @Failure 400 {object} errno.Errno "上传失败,请检查token与其他配置参数是否正确"
 // @Router /organization/:organization_name/image [post]
-
 func UploadImage(c *gin.Context) {
 	ID := c.MustGet("student_id").(string)
 	name := c.Param("organization_name")

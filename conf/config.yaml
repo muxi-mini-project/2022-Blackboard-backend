@@ -4,6 +4,6 @@ addr: 122.112.236.36:8181
 # addr:127.0.0.1:8181
 db:
   name: blackboard
-  addr: 122.112.236.36:3306
+  addr: 127.0.0.1:3306
   username: root
   password: root&1234
