@@ -51,7 +51,7 @@ var doc = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "{\"msg\":\"查看\"}",
+                        "description": "{\"msg\":\"查看成功\"}",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -59,14 +59,8 @@ var doc = `{
                             }
                         }
                     },
-                    "203": {
-                        "description": "{\"error_code\":\"20001\",\"message\":\"Fail.\"}",
-                        "schema": {
-                            "$ref": "#/definitions/errno.Errno"
-                        }
-                    },
-                    "401": {
-                        "description": "{\"error_code\":\"10001\",\"message\":\"Token Invalid.\"} 身份验证失败 重新登录",
+                    "500": {
+                        "description": "{\"msg\":\"Error occurred while getting url queries.\"}",
                         "schema": {
                             "$ref": "#/definitions/errno.Errno"
                         }
@@ -106,20 +100,8 @@ var doc = `{
                             }
                         }
                     },
-                    "203": {
-                        "description": "{\"error_code\":\"20001\",\"message\":\"Fail.\"}",
-                        "schema": {
-                            "$ref": "#/definitions/errno.Errno"
-                        }
-                    },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/errno.Errno"
-                        }
-                    },
-                    "412": {
-                        "description": "{\"msg\":\"身份认证失败\"}",
+                        "description": "{\"msg\":\"Fail\"}",
                         "schema": {
                             "$ref": "#/definitions/errno.Errno"
                         }
@@ -157,13 +139,16 @@ var doc = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "{\"msg\":\"取消成功\"}",
                         "schema": {
-                            "$ref": "#/definitions/errno.Errno"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Collection"
+                            }
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "{Code: 20002, Message: \"Database error.\"}",
                         "schema": {
                             "$ref": "#/definitions/errno.Errno"
                         }
@@ -203,12 +188,6 @@ var doc = `{
                 "responses": {
                     "200": {
                         "description": "{\"msg\":\"删除成功\"}"
-                    },
-                    "203": {
-                        "description": "{\"error_code\":\"20001\",\"message\":\"Fail.\"}",
-                        "schema": {
-                            "$ref": "#/definitions/errno.Errno"
-                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -328,19 +307,19 @@ var doc = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "{Code: 10002, Message: \"Error occurred while binding the request body to the struct.\"}",
                         "schema": {
                             "$ref": "#/definitions/errno.Errno"
                         }
                     },
                     "412": {
-                        "description": "{\"msg\":\"身份认证失败\"}",
+                        "description": "{\"msg\":\"身份认证错误\"}",
                         "schema": {
                             "$ref": "#/definitions/errno.Errno"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "{Code: 20002, Message: \"Database error.\"}",
                         "schema": {
                             "$ref": "#/definitions/errno.Errno"
                         }
@@ -480,7 +459,7 @@ var doc = `{
                         }
                     },
                     "400": {
-                        "description": "{\"error_code\":\"20001\",\"message\":\"Fail.\"}or {\"error_code\":\"00002\",\"message\":\"Lack Param or Param Not Satisfiable.\"}",
+                        "description": "{\"msg\":\"Fail\"}",
                         "schema": {
                             "$ref": "#/definitions/errno.Errno"
                         }
@@ -521,7 +500,7 @@ var doc = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "{\"message\":\"关注成功\"}",
                         "schema": {
                             "$ref": "#/definitions/errno.Errno"
                         }
@@ -607,15 +586,138 @@ var doc = `{
                                 "$ref": "#/definitions/model.FollowingOrganization"
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/user/changename": {
+            "put": {
+                "description": "接收新的User结构体来修改用户名",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "修改用户名",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "需要修改的用户信息",
+                        "name": "User",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.Info"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"msg\":\"修改成功\"}",
+                        "schema": {
+                            "$ref": "#/definitions/Response"
+                        }
                     },
                     "400": {
-                        "description": "{\"error_code\":\"20001\",\"message\":\"Fail.\"}or {\"error_code\":\"00002\",\"message\":\"Lack Param or Param Not Satisfiable.\"}",
+                        "description": "{\"error_code\":\"20001\", \"message\":\"Fail.\"} or {\"error_code\":\"00002\", \"message\":\"Lack Param Or Param Not Satisfiable.\"}",
                         "schema": {
                             "$ref": "#/definitions/errno.Errno"
                         }
                     },
                     "500": {
                         "description": "{\"error_code\":\"30001\", \"message\":\"Fail.\"} 失败",
+                        "schema": {
+                            "$ref": "#/definitions/errno.Errno"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/colletion": {
+            "get": {
+                "description": "查看用户收藏的通告",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "查看用户收藏",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"msg\":\"获取成功\"}",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Collection"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "{\"error_code\":\"20001\",\"message\":\"Fail.\"}or {\"error_code\":\"00002\",\"message\":\"Lack Param or Param Not Satisfiable.\"}",
+                        "schema": {
+                            "$ref": "#/definitions/errno.Errno"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/published": {
+            "get": {
+                "description": "查看用户发布过的通告",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "通告",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"msg\":\"获取成功\"}",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Announcement"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "{\"error_code\":\"20001\",\"message\":\"Fail.\"}or {\"error_code\":\"00002\",\"message\":\"Lack Param or Param Not Satisfiable.\"}",
                         "schema": {
                             "$ref": "#/definitions/errno.Errno"
                         }
@@ -758,6 +860,29 @@ var doc = `{
                     "type": "integer"
                 },
                 "organization_name": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Info": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "studentID": {
                     "type": "string"
                 },
                 "updatedAt": {
