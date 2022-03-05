@@ -331,7 +331,7 @@ var doc = `{
             "post": {
                 "description": "一站式登录",
                 "produces": [
-                    "applic/json"
+                    "application/json"
                 ],
                 "tags": [
                     "user"

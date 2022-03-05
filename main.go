@@ -7,6 +7,7 @@ import (
 	"blackboard/services/flag_handle"
 	"flag"
 	"fmt"
+	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -20,7 +21,7 @@ import (
 // @termsOfService http://swagger.io/terrms/
 // @contact.name Wishiforpeace
 // @contact.email 1903180340@qq.com
-// @host 122.112.236.36:8080
+// @host 119.3.2.168:8080
 // @BasePath /api/v1
 // @Schemes http
 
@@ -39,11 +40,16 @@ func main() {
 		fmt.Println("数据库连接失败")
 		panic(err)
 	}
+	gin.SetMode(gin.ReleaseMode)
 	model.Migrate(model.DB)
-	r := gin.Default()
-	router.Router(r)
-	r.Run(":8080")
+	link := "http://119.3.2.168:" + flag_handle.PORT
+	log.Println("监听端口:",link,"请不要关闭终端")
 	defer model.DB.Close()
+	r :=router.Router()
+	err = r.Run(":8080")
+	if err !=nil{
+		panic(err)
+	}
 }
 
 func init() {

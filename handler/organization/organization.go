@@ -6,9 +6,11 @@ import (
 	"blackboard/pkg/errno"
 	"blackboard/services"
 	"blackboard/services/connector"
+	"blackboard/services/organization"
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,15 +26,32 @@ type Detail struct {
 // @Accept application/json
 // @Produce application/json
 // @Param Authorization header string true "token"
+// @Param limit query int true "limit--偏移量指定开始返回记录之前要跳过的记录数"
+// @Param page query int true "page--限定制定要检索的记录数"
 // @Success 200 {object} []model.Organization "{"msg":"获取成功"}"
 // @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
 // @Router /organization [get]
 func CheckAll(c *gin.Context) {
-	org, err := model.GetAllOrganizations(" ")
+	var limit, page int
+	var err error
+	// 翻页
+	limit, err = strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil {
+		handler.SendBadRequest(c, errno.ErrQuery, nil)
+		return
+	}
+
+	page, err = strconv.Atoi(c.DefaultQuery("page", "0"))
+	if err != nil {
+		handler.SendBadRequest(c, errno.ErrQuery, nil)
+		return
+	}
+	org, err := organization.GetAllOrganizations(page*limit, limit)
 	if err != nil {
 		handler.SendError(c, errno.ErrDatabase, nil)
 		return
 	}
+
 	handler.SendResponse(c, "获取成功", org)
 }
 
@@ -41,6 +60,8 @@ func CheckAll(c *gin.Context) {
 // @Description 查看用户创建的组织
 // @Accept application/json
 // @Produce application/json
+// @Param limit query  int true "limit--偏移量指定开始返回记录之前要跳过的记录数 "
+// @Param page  query  int true "page--限制指定要检索的记录数 "
 // @Param Authorization header string true "token"
 // @Success 200 {object} []model.Organization "{"msg":"查询成功"}"
 // @Failue 203 {object} errno.Errno	"{"msg":"Fail"}"
@@ -48,10 +69,27 @@ func CheckAll(c *gin.Context) {
 // @Failure 500 {object} errno.Errno
 // @Router /organization/personal/created [get]
 func CheckCreated(c *gin.Context) {
+	var limit,page int
+	var err error
 	ID := c.MustGet("student_id").(string)
-	created, err := model.GetCreated(ID)
+	limit ,err = strconv.Atoi(c.DefaultQuery("limit","10"))
+	if err !=nil{
+		handler.SendBadRequest(c,errno.ErrQuery,err.Error())
+		return
+	}
+	page,err =strconv.Atoi(c.DefaultQuery("page","0"))
+	if err !=nil{
+		handler.SendBadRequest(c,errno.ErrQuery,err.Error())
+		return
+	}
+	
 	if err != nil {
 		c.JSON(http.StatusNonAuthoritativeInfo, gin.H{"message": "Fail."})
+		return
+	}
+	created, err := organization.GetCreated(ID,page*limit,limit)
+	if err !=nil{
+		handler.SendError(c,"Fail",errno.ErrDatabase,)
 		return
 	}
 	handler.SendResponse(c, "获取成功", created)
@@ -63,12 +101,27 @@ func CheckCreated(c *gin.Context) {
 // @Accept application/json
 // @Produce application/json
 // @Param Authorization header string true "token"
+// @Param limit query  int true "limit--偏移量指定开始返回记录之前要跳过的记录数 "
+// @Param page  query  int true "page--限制指定要检索的记录数 "
 // @Success 200 {object} []model.FollowingOrganization "{"msg":"获取成功"}"
 // @Failue 203 {object} errno.Errno	"{"msg":"Fail"}"
 // @Router /organization/personal/following [get]
 func CheckFollowing(c *gin.Context) {
+	var limit ,page int
+	var err error
 	ID := c.MustGet("student_id").(string)
-	following, err := model.GetFollowing(ID)
+	limit,err = strconv.Atoi(c.DefaultQuery("limit","10"))
+	if err !=nil{
+		handler.SendBadRequest(c,errno.ErrQuery,err.Error())
+		return
+	}
+	page ,err = strconv.Atoi(c.DefaultQuery("page","0"))
+	if err !=nil{
+		handler.SendBadRequest(c,errno.ErrQuery,err.Error())
+		return
+	}
+	var following []*model.FollowingOrganization
+	following, err = organization.GetFollowing(ID,limit*page,limit)
 	if err != nil {
 		c.JSON(http.StatusNonAuthoritativeInfo, gin.H{"message": "Fail."})
 		return

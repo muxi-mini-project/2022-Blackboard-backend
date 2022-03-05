@@ -6,19 +6,17 @@ import (
 	"blackboard/handler/user"
 	"blackboard/router/middleware"
 	"net/http"
-	"path/filepath"
+	
 
-	"github.com/Wishforpeace/My-Tool/utils"
 	"github.com/gin-gonic/gin"
 )
 
-func Router(r *gin.Engine) {
+func Router()*gin.Engine {
+
+	r :=gin.New()
 	r.NoRoute(func(c *gin.Context) {
 		c.String(http.StatusNotFound, "The incorrect API router.")
 	})
-	r.StaticFile("/favicon.ico", "./favicon.ico")
-	r.Static("/statics", "./statics/")
-	r.StaticFS("/avatar", http.Dir(filepath.Join(utils.RootPath(), "avatar")))
 	//登录
 	auth := r.Group("/api/v1/login")
 	{
@@ -79,15 +77,16 @@ func Router(r *gin.Engine) {
 		g3.POST("/group", announcement.CreateGroup)
 
 		//发布通知
-		g3.POST("/publish", announcement.PublishNews)
+		g3.POST("/content", announcement.PublishNews)
 
 		//删除通知
-		g3.DELETE("/delete/:announcement_id", announcement.DeletePublished)
+		g3.DELETE("/:announcement_id", announcement.DeletePublished)
 
 		//收藏通知
 		g3.POST("/collect", announcement.Collect)
 
 		//取消收藏
-		g3.DELETE("/collect/cancel/:collect_id", announcement.CancelCollect)
+		g3.DELETE("/collect/:collect_id", announcement.CancelCollect)
 	}
+	return r
 }

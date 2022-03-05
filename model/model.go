@@ -26,9 +26,16 @@ func UpdateUser(id string, url string, sha string, path string) error {
 }
 
 //查询用户收藏
-func GetCollection(id string) ([]Collection, error) {
-	collects := []Collection{}
-	return collects, DB.Where("student_id = ?", id).Find(&collects).Error
+func GetCollection(id string,offset int,limit int) ([]*Collection, error) {
+	item :=make([]*Collection,0)
+	d := DB.Table("collections").
+	Where("student_id = ?",id).
+	Offset(offset).Limit(limit).
+	Order("created_at").Scan(&item)
+	if d.Error !=nil{
+		return nil,d.Error
+	}
+	return item , d.Error
 
 }
 
@@ -39,15 +46,29 @@ func GetPublished(id string) ([]Announcement, error) {
 }
 
 //查询创建的组织
-func GetCreated(id string) ([]Organization, error) {
-	created := []Organization{}
-	return created, DB.Where("founder_id = ?", id).Find(&created).Error
+func GetCreated(id string ,offset int ,limit int) ([]*Organization, error) {
+	created := []*Organization{}
+	d :=DB.Table("organizations").
+	Where("founder_id=?",id).
+	Offset(offset).Limit(limit).
+	Order("created_at").Scan(&created)
+	if d.Error !=nil{
+		return nil,d.Error
+	}
+	return created, d.Error
 }
 
 //查询关注的组织
-func GetFollowing(id string) ([]FollowingOrganization, error) {
-	following := []FollowingOrganization{}
-	return following, DB.Where("student_id = ?", id).Find(&following).Error
+func GetFollowing(id string,offset int,limit int) ([]*FollowingOrganization, error) {
+	following := []*FollowingOrganization{}
+	d := DB.Table("following_organizations").
+	Where("student_id=?",id).
+	Offset(offset).Limit(limit).
+	Order("created_at").Scan(&following)
+	if d.Error !=nil{
+		return nil,d.Error
+	}
+	return following, d.Error
 }
 
 //关注新的组织
@@ -61,9 +82,17 @@ func Follow(follow FollowingOrganization) error {
 }
 
 //查询所有组织
-func GetAllOrganizations(interface{}) ([]Organization, error) {
-	org := []Organization{}
-	return org, DB.Find(&org).Error
+func GetAllOrganizations(offset, limit int) ([]*Organization, error) {
+	item := make([]*Organization, 0)
+
+	d := DB.Table("organizations").
+		Select("organizations.*").
+		Offset(offset).Limit(limit).
+		Order("created_at").Scan(&item)
+	if d.Error != nil {
+		return nil, d.Error
+	}
+	return item, d.Error
 }
 
 //查询组织ID
@@ -85,10 +114,16 @@ func GetDetails(ID string, Name string) (Organization, error) {
 }
 
 //查看全部通知
-func GetAnnouncements(interface{}) ([]Announcement, error) {
-	announce := []Announcement{}
-
-	return announce, DB.Find(&announce).Error
+func GetAnnouncements(offset,limit int) ([]*Announcement, error) {
+	item := make([]*Announcement,0)
+	d :=DB.Table("announcements").
+	Select("announcements.*").
+	Offset(offset).Limit(limit).
+	Order("created_at").Scan(&item)
+	if d.Error !=nil{
+		return nil,d.Error
+	}
+	return item,d.Error
 }
 
 //查询特定通知
