@@ -378,7 +378,7 @@ paths:
         schema:
           $ref: '#/definitions/model.User'
       produces:
-      - applic/json
+      - application/json
       responses:
         "200":
           description: '{"msg":"将student_id作为token保留"}'

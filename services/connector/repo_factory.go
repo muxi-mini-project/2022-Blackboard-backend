@@ -4,12 +4,13 @@ import (
 	"blackboard/services"
 	"blackboard/services/flag_handle"
 	"blackboard/services/gitee"
+	"blackboard/services/github"
 )
 
 //定义serve的映射关系
 var serveMap = map[string]services.RepoInterface{
 	"gitee": &gitee.GiteeServe{},
-	// "github": &github.GithubServe{},
+	"github": &github.GithubServe{},
 }
 
 func RepoCreate() services.RepoInterface {

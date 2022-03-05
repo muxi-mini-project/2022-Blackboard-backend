@@ -3,11 +3,14 @@ package user
 import (
 	"blackboard/handler"
 	"blackboard/model"
+	"blackboard/pkg/errno"
 	"blackboard/services"
 	"blackboard/services/connector"
+	"blackboard/services/collect"
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 
 	// "time"
 
@@ -80,13 +83,26 @@ func ChangeUserName(c *gin.Context) {
 // @Accept application/json
 // @Produce application/json
 // @Param Authorization header string true "token"
+// @Param limit query  int true "limit--偏移量指定开始返回记录之前要跳过的记录数 "
+// @Param page  query  int true "page--限制指定要检索的记录数 "
 // @Success 200 {object} []model.Collection "{"msg":"获取成功"}"
 // @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
 // @Router /user/colletion [get]
 func CheckCollections(c *gin.Context) {
+	var limit,page int
+	var err error
 	ID := c.MustGet("student_id").(string)
+	limit ,err = strconv.Atoi(c.DefaultQuery("limit","10"))
+	if err !=nil{        
+		handler.SendBadRequest(c,errno.ErrQuery,err.Error())
+		return
+	}
+	page ,err =strconv.Atoi(c.DefaultQuery("page","0"))
+	if err !=nil{
+		handler.SendBadRequest(c,errno.ErrQuery,err.Error())
+	}
 
-	collect, err := model.GetCollection(ID)
+	collect, err := collect.GetCollection(ID,page*limit,limit)
 	if err != nil {
 		c.JSON(http.StatusNonAuthoritativeInfo, gin.H{
 			"message": "Fail.",
@@ -101,6 +117,8 @@ func CheckCollections(c *gin.Context) {
 // @Accept application/json
 // @Produce application/json
 // @Param Authorization header string true "token"
+// @Param limit query  int true "limit--偏移量指定开始返回记录之前要跳过的记录数 "
+// @Param page  query  int true "page--限制指定要检索的记录数 "
 // @Success 200 {object} []model.Announcement "{"msg":"获取成功"}"
 // @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
 // @Router /user/published [get]

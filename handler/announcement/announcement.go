@@ -4,21 +4,36 @@ import (
 	"blackboard/handler"
 	"blackboard/model"
 	"blackboard/pkg/errno"
+	"blackboard/services/announcement"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 // @Summary 查看通知
 // @Tags announcement
-// @Description 用户查看已经发布过的通知
+// @Description 用户查看已经发布的通知
 // @Accept application/json
 // @Produce application/json
 // @Param Authorization header string true "token"
+// @Param limit query  int true "limit--偏移量指定开始返回记录之前要跳过的记录数 "
+// @Param page  query  int true "page--限制指定要检索的记录数 "
 // @Success 200 {object} []model.Announcement "{"msg":"查看成功"}"
 // @Failure 500 {object} errno.Errno "{"msg":"Error occurred while getting url queries."}"
 // @Router /announcement [get]
 func CheckAllPubilshed(c *gin.Context) {
-	announcement, err := model.GetAnnouncements(" ")
+	var limit ,page int
+	var err error
+	limit,err = strconv.Atoi(c.DefaultQuery("limit","10"))
+	if err !=nil{
+		handler.SendBadRequest(c,errno.ErrQuery,nil)
+	}
+
+	page,err = strconv.Atoi(c.DefaultQuery("page","0"))
+	if err !=nil{
+		handler.SendBadRequest(c,errno.ErrQuery,nil)
+	}
+	announcement, err := announcement.GetAnnouncements(limit*page,limit)
 	if err != nil {
 		handler.SendError(c, errno.ErrQuery, nil)
 		return
@@ -37,7 +52,7 @@ func CheckAllPubilshed(c *gin.Context) {
 // @Failure 400 {object} errno.Errno "{Code: 10002, Message: "Error occurred while binding the request body to the struct."}"
 // @Failure 500 {object} errno.Errno "{Code: 20002, Message: "Database error."}"
 // @Failure 412 {object} errno.Errno "{"msg":"身份认证错误"}"
-// @Router /announcement/publish [post]
+// @Router /announcement/content [post]
 func PublishNews(c *gin.Context) {
 	ID := c.MustGet("student_id").(string)
 	var announcement model.Announcement
@@ -112,7 +127,7 @@ func CreateGroup(c *gin.Context) {
 // @Failure 400 {object} errno.Errno
 // @Failure 500 {object} errno.Errno
 // @Failure 412 {object} errno.Errno "{"msg":"身份认证失败"}"
-// @Router /announcement/delete/:announcement_id [delete]
+// @Router /announcement/:announcement_id [delete]
 func DeletePublished(c *gin.Context) {
 	ID := c.MustGet("student_id").(string)
 	AnnoucementID := c.Param("announcement_id")
@@ -172,7 +187,7 @@ func Collect(c *gin.Context) {
 // @Param collect_id path string true "collect_id"
 // @Success 200 {object} []model.Collection "{"msg":"取消成功"}"
 // @Failure 500 {object} errno.Errno "{Code: 20002, Message: "Database error."}"
-// @Router /announcement/collect/cancel/:collect_id [delete]
+// @Router /announcement/:collect_id [delete]
 func CancelCollect(c *gin.Context) {
 	CollectID := c.Param("collect_id")
 	err := model.CancelCollect(CollectID)
