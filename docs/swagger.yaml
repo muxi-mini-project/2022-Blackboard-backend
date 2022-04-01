@@ -158,7 +158,7 @@ definitions:
     - password
     - student_id
     type: object
-host: 122.112.236.36:8080
+host: 119.3.2.168:8080
 info:
   contact:
     email: 1903180340@qq.com
@@ -172,13 +172,23 @@ paths:
     get:
       consumes:
       - application/json
-      description: 用户查看已经发布过的通知
+      description: 用户查看已经发布的通知
       parameters:
       - description: token
         in: header
         name: Authorization
         required: true
         type: string
+      - description: 'limit--偏移量指定开始返回记录之前要跳过的记录数 '
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: 'page--限制指定要检索的记录数 '
+        in: query
+        name: page
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -195,65 +205,7 @@ paths:
       summary: 查看通知
       tags:
       - announcement
-  /announcement/collect:
-    post:
-      consumes:
-      - application/json
-      description: 用户将通知加入自己的收藏
-      parameters:
-      - description: token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: '{"msg":"收藏成功"}'
-          schema:
-            items:
-              $ref: '#/definitions/model.Collection'
-            type: array
-        "400":
-          description: '{"msg":"Fail"}'
-          schema:
-            $ref: '#/definitions/errno.Errno'
-      summary: 收藏通知
-      tags:
-      - announcement
-  /announcement/collect/cancel/:collect_id:
-    delete:
-      consumes:
-      - application/json
-      parameters:
-      - description: token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: collect_id
-        in: path
-        name: collect_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: '{"msg":"取消成功"}'
-          schema:
-            items:
-              $ref: '#/definitions/model.Collection'
-            type: array
-        "500":
-          description: '{Code: 20002, Message: "Database error."}'
-          schema:
-            $ref: '#/definitions/errno.Errno'
-      summary: 取消收藏
-      tags:
-      - announcement
-  /announcement/delete/:announcement_id:
+  /announcement/:announcement_id:
     delete:
       consumes:
       - application/json
@@ -289,43 +241,65 @@ paths:
       summary: 删除通知
       tags:
       - announcement
-  /announcement/group:
-    post:
+  /announcement/:collect_id:
+    delete:
       consumes:
       - application/json
-      description: 仅组织创建者可新建通告分组
       parameters:
       - description: token
         in: header
         name: Authorization
         required: true
         type: string
-      - description: 新建分组
-        in: body
-        name: group
-        schema:
-          $ref: '#/definitions/model.Grouping'
+      - description: collect_id
+        in: path
+        name: collect_id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: '{"msg":"创建成功"}'
+          description: '{"msg":"取消成功"}'
           schema:
             items:
-              $ref: '#/definitions/model.Grouping'
+              $ref: '#/definitions/model.Collection'
             type: array
-        "400":
-          description: Bad Request
+        "500":
+          description: '{Code: 20002, Message: "Database error."}'
           schema:
             $ref: '#/definitions/errno.Errno'
-        "412":
-          description: '{"msg":"身份认证失败"}'
-          schema:
-            $ref: '#/definitions/errno.Errno'
-      summary: 创建分组
+      summary: 取消收藏
       tags:
       - announcement
-  /announcement/publish:
+  /announcement/collect:
+    post:
+      consumes:
+      - application/json
+      description: 用户将通知加入自己的收藏
+      parameters:
+      - description: token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"收藏成功"}'
+          schema:
+            items:
+              $ref: '#/definitions/model.Collection'
+            type: array
+        "400":
+          description: '{"msg":"Fail"}'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 收藏通知
+      tags:
+      - announcement
+  /announcement/content:
     post:
       consumes:
       - application/json
@@ -365,6 +339,42 @@ paths:
           schema:
             $ref: '#/definitions/errno.Errno'
       summary: 发布通知
+      tags:
+      - announcement
+  /announcement/group:
+    post:
+      consumes:
+      - application/json
+      description: 仅组织创建者可新建通告分组
+      parameters:
+      - description: token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 新建分组
+        in: body
+        name: group
+        schema:
+          $ref: '#/definitions/model.Grouping'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"msg":"创建成功"}'
+          schema:
+            items:
+              $ref: '#/definitions/model.Grouping'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errno.Errno'
+        "412":
+          description: '{"msg":"身份认证失败"}'
+          schema:
+            $ref: '#/definitions/errno.Errno'
+      summary: 创建分组
       tags:
       - announcement
   /login:
@@ -412,6 +422,16 @@ paths:
         name: Authorization
         required: true
         type: string
+      - description: limit--偏移量指定开始返回记录之前要跳过的记录数
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: page--限定制定要检索的记录数
+        in: query
+        name: page
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -557,6 +577,16 @@ paths:
       - application/json
       description: 查看用户创建的组织
       parameters:
+      - description: 'limit--偏移量指定开始返回记录之前要跳过的记录数 '
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: 'page--限制指定要检索的记录数 '
+        in: query
+        name: page
+        required: true
+        type: integer
       - description: token
         in: header
         name: Authorization
@@ -593,6 +623,16 @@ paths:
         name: Authorization
         required: true
         type: string
+      - description: 'limit--偏移量指定开始返回记录之前要跳过的记录数 '
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: 'page--限制指定要检索的记录数 '
+        in: query
+        name: page
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -652,6 +692,16 @@ paths:
         name: Authorization
         required: true
         type: string
+      - description: 'limit--偏移量指定开始返回记录之前要跳过的记录数 '
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: 'page--限制指定要检索的记录数 '
+        in: query
+        name: page
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -710,6 +760,16 @@ paths:
         name: Authorization
         required: true
         type: string
+      - description: 'limit--偏移量指定开始返回记录之前要跳过的记录数 '
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: 'page--限制指定要检索的记录数 '
+        in: query
+        name: page
+        required: true
+        type: integer
       produces:
       - application/json
       responses:

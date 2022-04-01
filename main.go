@@ -43,28 +43,28 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	model.Migrate(model.DB)
 	link := "http://119.3.2.168:" + flag_handle.PORT
-	log.Println("监听端口:",link,"请不要关闭终端")
+	log.Println("监听端口:", link, "请不要关闭终端")
 	defer model.DB.Close()
-	r :=router.Router()
+	r := router.Router()
 	err = r.Run(":8080")
-	if err !=nil{
+	if err != nil {
 		panic(err)
 	}
 }
 
 func init() {
 	port := flag.String("port", "8080", "本地监听的端口")
-	platform := flag.String("platform", "gitee", "平台名称，支持gitee/github")
-	token := flag.String("token", "5e3014aedeaaf3e2c9b8dc58dc03d959", "Gitee/Github 的用户授权码")
+	platform := flag.String("platform", "github", "平台名称，支持gitee/github")
+	token := flag.String("token", "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", "Gitee/Github 的用户授权码")
 	owner := flag.String("owner", "Wishforpeace", "仓库所属空间地址(企业、组织或个人的地址path)")
-	repo := flag.String("repo", "blackboard", "仓库路径(path)")
-	path := flag.String("path", "", "文件的路径")
-	branch := flag.String("branch", "master", "分支")
+	repo := flag.String("repo", "BlackboardImage", "仓库路径(path)")
+	//path := flag.String("path", "", "文件的路径")
+	branch := flag.String("branch", "main", "分支")
 	flag.Parse()
 	flag_handle.PORT = *port
 	flag_handle.OWNER = *owner
 	flag_handle.REPO = *repo
-	flag_handle.PATH = *path
+	//flag_handle.PATH = *path
 	flag_handle.TOKEN = *token
 	flag_handle.PLATFORM = *platform
 	flag_handle.BRANCH = *branch

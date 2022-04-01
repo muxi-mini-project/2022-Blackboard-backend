@@ -29,7 +29,7 @@ var doc = `{
     "paths": {
         "/announcement": {
             "get": {
-                "description": "用户查看已经发布过的通知",
+                "description": "用户查看已经发布的通知",
                 "consumes": [
                     "application/json"
                 ],
@@ -47,6 +47,20 @@ var doc = `{
                         "name": "Authorization",
                         "in": "header",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit--偏移量指定开始返回记录之前要跳过的记录数 ",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page--限制指定要检索的记录数 ",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -61,6 +75,107 @@ var doc = `{
                     },
                     "500": {
                         "description": "{\"msg\":\"Error occurred while getting url queries.\"}",
+                        "schema": {
+                            "$ref": "#/definitions/errno.Errno"
+                        }
+                    }
+                }
+            }
+        },
+        "/announcement/:announcement_id": {
+            "delete": {
+                "description": "仅组织创建者可删除通告",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "announcement"
+                ],
+                "summary": "删除通知",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "通知ID",
+                        "name": "announcement_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"msg\":\"删除成功\"}"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errno.Errno"
+                        }
+                    },
+                    "412": {
+                        "description": "{\"msg\":\"身份认证失败\"}",
+                        "schema": {
+                            "$ref": "#/definitions/errno.Errno"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errno.Errno"
+                        }
+                    }
+                }
+            }
+        },
+        "/announcement/:collect_id": {
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "announcement"
+                ],
+                "summary": "取消收藏",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "collect_id",
+                        "name": "collect_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"msg\":\"取消成功\"}",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Collection"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "{Code: 20002, Message: \"Database error.\"}",
                         "schema": {
                             "$ref": "#/definitions/errno.Errno"
                         }
@@ -109,8 +224,9 @@ var doc = `{
                 }
             }
         },
-        "/announcement/collect/cancel/:collect_id": {
-            "delete": {
+        "/announcement/content": {
+            "post": {
+                "description": "仅组织创建者可发布新的通知",
                 "consumes": [
                     "application/json"
                 ],
@@ -120,7 +236,7 @@ var doc = `{
                 "tags": [
                     "announcement"
                 ],
-                "summary": "取消收藏",
+                "summary": "发布通知",
                 "parameters": [
                     {
                         "type": "string",
@@ -130,79 +246,39 @@ var doc = `{
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "collect_id",
-                        "name": "collect_id",
-                        "in": "path",
-                        "required": true
+                        "description": "组织创建者发布的新通知",
+                        "name": "announcement",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.Announcement"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "{\"msg\":\"取消成功\"}",
+                        "description": "{\"msg\":\"创建成功\"}",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.Collection"
+                                "$ref": "#/definitions/model.Announcement"
                             }
                         }
                     },
-                    "500": {
-                        "description": "{Code: 20002, Message: \"Database error.\"}",
-                        "schema": {
-                            "$ref": "#/definitions/errno.Errno"
-                        }
-                    }
-                }
-            }
-        },
-        "/announcement/delete/:announcement_id": {
-            "delete": {
-                "description": "仅组织创建者可删除通告",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "announcement"
-                ],
-                "summary": "删除通知",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "通知ID",
-                        "name": "announcement_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{\"msg\":\"删除成功\"}"
-                    },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "{Code: 10002, Message: \"Error occurred while binding the request body to the struct.\"}",
                         "schema": {
                             "$ref": "#/definitions/errno.Errno"
                         }
                     },
                     "412": {
-                        "description": "{\"msg\":\"身份认证失败\"}",
+                        "description": "{\"msg\":\"身份认证错误\"}",
                         "schema": {
                             "$ref": "#/definitions/errno.Errno"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "{Code: 20002, Message: \"Database error.\"}",
                         "schema": {
                             "$ref": "#/definitions/errno.Errno"
                         }
@@ -258,68 +334,6 @@ var doc = `{
                     },
                     "412": {
                         "description": "{\"msg\":\"身份认证失败\"}",
-                        "schema": {
-                            "$ref": "#/definitions/errno.Errno"
-                        }
-                    }
-                }
-            }
-        },
-        "/announcement/publish": {
-            "post": {
-                "description": "仅组织创建者可发布新的通知",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "announcement"
-                ],
-                "summary": "发布通知",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "组织创建者发布的新通知",
-                        "name": "announcement",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.Announcement"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{\"msg\":\"创建成功\"}",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.Announcement"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "{Code: 10002, Message: \"Error occurred while binding the request body to the struct.\"}",
-                        "schema": {
-                            "$ref": "#/definitions/errno.Errno"
-                        }
-                    },
-                    "412": {
-                        "description": "{\"msg\":\"身份认证错误\"}",
-                        "schema": {
-                            "$ref": "#/definitions/errno.Errno"
-                        }
-                    },
-                    "500": {
-                        "description": "{Code: 20002, Message: \"Database error.\"}",
                         "schema": {
                             "$ref": "#/definitions/errno.Errno"
                         }
@@ -395,6 +409,20 @@ var doc = `{
                         "description": "token",
                         "name": "Authorization",
                         "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit--偏移量指定开始返回记录之前要跳过的记录数",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page--限定制定要检索的记录数",
+                        "name": "page",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -616,6 +644,20 @@ var doc = `{
                 "summary": "查看创建",
                 "parameters": [
                     {
+                        "type": "integer",
+                        "description": "limit--偏移量指定开始返回记录之前要跳过的记录数 ",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page--限制指定要检索的记录数 ",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
                         "type": "string",
                         "description": "token",
                         "name": "Authorization",
@@ -667,6 +709,20 @@ var doc = `{
                         "description": "token",
                         "name": "Authorization",
                         "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit--偏移量指定开始返回记录之前要跳过的记录数 ",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page--限制指定要检索的记录数 ",
+                        "name": "page",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -756,6 +812,20 @@ var doc = `{
                         "name": "Authorization",
                         "in": "header",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit--偏移量指定开始返回记录之前要跳过的记录数 ",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page--限制指定要检索的记录数 ",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -840,6 +910,20 @@ var doc = `{
                         "description": "token",
                         "name": "Authorization",
                         "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit--偏移量指定开始返回记录之前要跳过的记录数 ",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page--限制指定要检索的记录数 ",
+                        "name": "page",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -1164,7 +1248,7 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "1.0.0",
-	Host:        "122.112.236.36:8080",
+	Host:        "119.3.2.168:8080",
 	BasePath:    "/api/v1",
 	Schemes:     []string{"http"},
 	Title:       "BlackBoard API",

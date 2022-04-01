@@ -69,27 +69,27 @@ func CheckAll(c *gin.Context) {
 // @Failure 500 {object} errno.Errno
 // @Router /organization/personal/created [get]
 func CheckCreated(c *gin.Context) {
-	var limit,page int
+	var limit, page int
 	var err error
 	ID := c.MustGet("student_id").(string)
-	limit ,err = strconv.Atoi(c.DefaultQuery("limit","10"))
-	if err !=nil{
-		handler.SendBadRequest(c,errno.ErrQuery,err.Error())
+	limit, err = strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil {
+		handler.SendBadRequest(c, errno.ErrQuery, err.Error())
 		return
 	}
-	page,err =strconv.Atoi(c.DefaultQuery("page","0"))
-	if err !=nil{
-		handler.SendBadRequest(c,errno.ErrQuery,err.Error())
+	page, err = strconv.Atoi(c.DefaultQuery("page", "0"))
+	if err != nil {
+		handler.SendBadRequest(c, errno.ErrQuery, err.Error())
 		return
 	}
-	
+
 	if err != nil {
 		c.JSON(http.StatusNonAuthoritativeInfo, gin.H{"message": "Fail."})
 		return
 	}
-	created, err := organization.GetCreated(ID,page*limit,limit)
-	if err !=nil{
-		handler.SendError(c,"Fail",errno.ErrDatabase,)
+	created, err := organization.GetCreated(ID, page*limit, limit)
+	if err != nil {
+		handler.SendError(c, "Fail", errno.ErrDatabase)
 		return
 	}
 	handler.SendResponse(c, "获取成功", created)
@@ -107,21 +107,21 @@ func CheckCreated(c *gin.Context) {
 // @Failue 203 {object} errno.Errno	"{"msg":"Fail"}"
 // @Router /organization/personal/following [get]
 func CheckFollowing(c *gin.Context) {
-	var limit ,page int
+	var limit, page int
 	var err error
 	ID := c.MustGet("student_id").(string)
-	limit,err = strconv.Atoi(c.DefaultQuery("limit","10"))
-	if err !=nil{
-		handler.SendBadRequest(c,errno.ErrQuery,err.Error())
+	limit, err = strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil {
+		handler.SendBadRequest(c, errno.ErrQuery, err.Error())
 		return
 	}
-	page ,err = strconv.Atoi(c.DefaultQuery("page","0"))
-	if err !=nil{
-		handler.SendBadRequest(c,errno.ErrQuery,err.Error())
+	page, err = strconv.Atoi(c.DefaultQuery("page", "0"))
+	if err != nil {
+		handler.SendBadRequest(c, errno.ErrQuery, err.Error())
 		return
 	}
 	var following []*model.FollowingOrganization
-	following, err = organization.GetFollowing(ID,limit*page,limit)
+	following, err = organization.GetFollowing(ID, limit*page, limit)
 	if err != nil {
 		c.JSON(http.StatusNonAuthoritativeInfo, gin.H{"message": "Fail."})
 		return
@@ -201,6 +201,7 @@ func CreateOne(c *gin.Context) {
 func UploadImage(c *gin.Context) {
 	ID := c.MustGet("student_id").(string)
 	name := c.Param("organization_name")
+	PATH := "Organizations"
 	if name == "" {
 		handler.SendBadRequest(c, "Lack Param Or Param Not Satisfiable.", nil)
 		return
@@ -243,7 +244,7 @@ func UploadImage(c *gin.Context) {
 
 	// 上传新头像
 	Base64 := services.ImagesToBase64(filename)
-	organization.Avatar, organization.Path, organization.Sha = connector.RepoCreate().Push(file.Filename, Base64)
+	organization.Avatar, organization.Path, organization.Sha = connector.RepoCreate().Push(PATH, file.Filename, Base64)
 
 	os.Remove(filename)
 

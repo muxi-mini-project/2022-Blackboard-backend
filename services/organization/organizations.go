@@ -2,7 +2,6 @@ package organization
 
 import (
 	"blackboard/model"
-	
 )
 
 func GetAllOrganizations(offset int, limit int) ([]*model.Organization, error) {

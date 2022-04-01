@@ -1,20 +1,20 @@
 package github
 
 import (
+	"blackboard/services"
+	"blackboard/services/flag_handle"
 	"encoding/json"
 	"fmt"
 	"github.com/valyala/fasthttp"
 	"log"
-	"blackboard/services"
-	"blackboard/services/flag_handle"
 )
 
 type GithubServe struct {
 	services.RepoInterface
 }
 
-func (serve *GithubServe) Push(filename, content string) (string, string, string) {
-	return Push(filename, content)
+func (serve *GithubServe) Push(PATH, filename, content string) (string, string, string) {
+	return Push(PATH, filename, content)
 }
 
 func (serve *GithubServe) GetFiles() []map[string]interface{} {
@@ -25,13 +25,13 @@ func (serve *GithubServe) Del(filepath, sha string) string {
 	return DelFile(filepath, sha)
 }
 
-func Push(filename, content string) (string, string, string) {
+func Push(PATH, filename, content string) (string, string, string) {
 
 	url := "https://api.github.com/repos/" +
 		flag_handle.OWNER + "/" +
 		flag_handle.REPO +
 		"/contents/" +
-		flag_handle.PATH +
+		PATH +
 		"/" + filename
 
 	req := fasthttp.AcquireRequest()
@@ -83,7 +83,7 @@ func Push(filename, content string) (string, string, string) {
 	if ok {
 		if mapResult["content"] != nil {
 			path := mapResult["content"].(map[string]interface{})["path"].(string)
-			d = "https://cdn.jsdelivr.net/gh/"+ flag_handle.OWNER + "/" +flag_handle.REPO + "@"+flag_handle.BRANCH+"/" + path
+			d = "https://cdn.jsdelivr.net/gh/" + flag_handle.OWNER + "/" + flag_handle.REPO + "@" + flag_handle.BRANCH + "/" + path
 			p = path
 			s = mapResult["content"].(map[string]interface{})["sha"].(string)
 		}
@@ -133,8 +133,8 @@ func GetFiles() []map[string]interface{} {
 		fmt.Println("JsonToMapDemo err: ", err)
 	}
 
-	for _, v := range mapResult{
-		v["download_url"] = "https://cdn.jsdelivr.net/gh/"+ flag_handle.OWNER + "/" +flag_handle.REPO + "@"+flag_handle.BRANCH+"/" + v["path"].(string)
+	for _, v := range mapResult {
+		v["download_url"] = "https://cdn.jsdelivr.net/gh/" + flag_handle.OWNER + "/" + flag_handle.REPO + "@" + flag_handle.BRANCH + "/" + v["path"].(string)
 	}
 	return mapResult
 }
