@@ -14,8 +14,8 @@ type GiteeServe struct {
 	services.RepoInterface
 }
 
-func (serve *GiteeServe) Push(filename, content string) (string, string, string) {
-	return PushGitee(filename, content)
+func (serve *GiteeServe) Push(PATH, filename, content string) (string, string, string) {
+	return PushGitee(PATH, filename, content)
 }
 
 func (serve *GiteeServe) GetFiles() []map[string]interface{} {
@@ -26,8 +26,8 @@ func (serve *GiteeServe) Del(filepath, sha string) string {
 	return DelFile(filepath, sha)
 }
 
-func PushGitee(filename, content string) (string, string, string) {
-	url := "https://gitee.com/api/v5/repos/" + flag_handle.OWNER + "/" + flag_handle.REPO + "/contents/" + flag_handle.PATH + "/" + filename
+func PushGitee(PATH, filename, content string) (string, string, string) {
+	url := "https://gitee.com/api/v5/repos/" + flag_handle.OWNER + "/" + flag_handle.REPO + "/contents/" + PATH + "/" + filename
 
 	// 初始化请求与响应
 	req := fasthttp.AcquireRequest()

@@ -5,8 +5,8 @@ import (
 	"blackboard/model"
 	"blackboard/pkg/errno"
 	"blackboard/services"
-	"blackboard/services/connector"
 	"blackboard/services/collect"
+	"blackboard/services/connector"
 	"net/http"
 	"os"
 	"path"
@@ -30,7 +30,7 @@ type Avatar struct {
 // @Accept application/json
 // @Produce application/json
 // @Param Authorization header string true "token"
-// @Success 200 {object} model.User "{"msg":"获取成功"}"
+// @Success 200 {object} model.Info "{"msg":"获取成功"}"
 // @Failure 400 {object} errno.Errno "{"error_code":"20001", "message":"Fail."} or {"error_code":"00002", "message":"Lack Param Or Param Not Satisfiable."}"
 // @Failure 500 {object} errno.Errno "{"error_code":"30001", "message":"Fail."} 失败"
 // @Router /user/info [get]
@@ -87,22 +87,22 @@ func ChangeUserName(c *gin.Context) {
 // @Param page  query  int true "page--限制指定要检索的记录数 "
 // @Success 200 {object} []model.Collection "{"msg":"获取成功"}"
 // @Failure 400 {object} errno.Errno "{"error_code":"20001","message":"Fail."}or {"error_code":"00002","message":"Lack Param or Param Not Satisfiable."}"
-// @Router /user/colletion [get]
+// @Router /user/collection [get]
 func CheckCollections(c *gin.Context) {
-	var limit,page int
+	var limit, page int
 	var err error
 	ID := c.MustGet("student_id").(string)
-	limit ,err = strconv.Atoi(c.DefaultQuery("limit","10"))
-	if err !=nil{        
-		handler.SendBadRequest(c,errno.ErrQuery,err.Error())
+	limit, err = strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil {
+		handler.SendBadRequest(c, errno.ErrQuery, err.Error())
 		return
 	}
-	page ,err =strconv.Atoi(c.DefaultQuery("page","0"))
-	if err !=nil{
-		handler.SendBadRequest(c,errno.ErrQuery,err.Error())
+	page, err = strconv.Atoi(c.DefaultQuery("page", "0"))
+	if err != nil {
+		handler.SendBadRequest(c, errno.ErrQuery, err.Error())
 	}
 
-	collect, err := collect.GetCollection(ID,page*limit,limit)
+	collect, err := collect.GetCollection(ID, page*limit, limit)
 	if err != nil {
 		c.JSON(http.StatusNonAuthoritativeInfo, gin.H{
 			"message": "Fail.",
@@ -148,6 +148,8 @@ func UserPublished(c *gin.Context) {
 func UpdateUserProfile(c *gin.Context) {
 	ID := c.MustGet("student_id").(string)
 	file, err := c.FormFile("file")
+	PATH := "Users"
+	//image := c.PostForm("image")
 	if err != nil {
 		handler.SendBadRequest(c, "上传失败", nil)
 		return
@@ -178,8 +180,9 @@ func UpdateUserProfile(c *gin.Context) {
 
 	// 上传新头像
 	Base64 := services.ImagesToBase64(filename)
-	picUrl, picPath, picSha := connector.RepoCreate().Push(file.Filename, Base64)
-
+	//删除Base64 传入image
+	picUrl, picPath, picSha := connector.RepoCreate().Push(PATH, file.Filename, Base64)
+	//picUrl, picPath, picSha := connector.RepoCreate().Push(file.Filename, image)
 	os.Remove(filename)
 
 	e := model.UpdateUser(ID, picUrl, picSha, picPath)
